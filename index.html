@@ -1,32 +1,34 @@
 <!doctype html>
 <html lang="ms" class="h-full">
- <head>
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hikmah Machang Farm POS</title>
   
-  <!-- PWA Manifest -->
+  <!-- PWA & Meta -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f2418">
   <link rel="apple-touch-icon" href="icon-192.png">
 
-  <!-- Tailwind & Icons -->
+  <!-- TailwindCSS, Lucide Icons & QR Code -->
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   
-  <!-- Firebase SDK (Compat version for simplicity in pure HTML) -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
             farm: { 50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#1a3a2a',900:'#0f2418' },
-            gold: { 50:'#fefce8',100:'#fef9c3',200:'#fef08a',300:'#fde047',400:'#d4a843',500:'#b8860b',600:'#a16207' }
+            gold: { 400:'#d4a843',500:'#b8860b',600:'#a16207' }
           }
         }
       }
@@ -35,128 +37,484 @@
   <style>
     * { font-family: 'DM Sans', sans-serif; }
     .font-display { font-family: 'Playfair Display', serif; }
-    .sidebar-item { transition: all 0.2s ease; }
-    .sidebar-item:hover, .sidebar-item.active { background: rgba(255,255,255,0.1); border-left: 3px solid #d4a843; }
-    .card-hover { transition: all 0.3s ease; }
-    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
-    .fade-in { animation: fadeIn 0.3s ease; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-    .toast { animation: slideIn 0.3s ease, slideOut 0.3s ease 2.7s; }
+    .sidebar-item { transition: all 0.3s ease; }
+    .sidebar-item:hover, .sidebar-item.active { background: rgba(255,255,255,0.1); border-left: 4px solid #d4a843; }
+    .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 25px rgba(0,0,0,0.1); }
+    .fade-in { animation: fadeIn 0.4s ease forwards; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:translateY(0)} }
+    .toast { animation: slideIn 0.3s ease, slideOut 0.3s ease 2.7s forwards; }
     @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
     @keyframes slideOut { from{opacity:1} to{opacity:0;transform:translateX(100%)} }
     @media print { .no-print{display:none!important} .print-only{display:block!important} }
     .print-only{display:none}
-    ::-webkit-scrollbar{width:6px}
-    ::-webkit-scrollbar-track{background:#1a3a2a}
-    ::-webkit-scrollbar-thumb{background:#4ade80;border-radius:3px}
-    body { box-sizing: border-box; }
+    ::-webkit-scrollbar{width:5px}
+    ::-webkit-scrollbar-track{background:#f3f4f6}
+    ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
   </style>
- </head>
- <body class="h-full bg-gray-50 overflow-hidden">
+</head>
+<body class="h-full bg-gray-50 overflow-hidden text-gray-800">
   <div id="app" class="h-full w-full">
    
-   <!-- LOGIN PAGE -->
+   <!-- ================= LOGIN PAGE ================= -->
    <div id="loginPage" class="h-full w-full flex items-center justify-center bg-gradient-to-br from-farm-900 via-farm-800 to-farm-900 relative overflow-hidden">
-    <div class="absolute inset-0 opacity-10">
-     <div class="absolute top-20 left-20 w-40 h-40 border border-gold-400 rounded-full"></div>
-     <div class="absolute bottom-20 right-20 w-60 h-60 border border-gold-400 rounded-full"></div>
+    <!-- Hiasan Background -->
+    <div class="absolute inset-0 opacity-20 pointer-events-none">
+     <div class="absolute -top-20 -left-20 w-64 h-64 border border-gold-400 rounded-full"></div>
+     <div class="absolute bottom-10 right-10 w-96 h-96 border border-farm-400 rounded-full"></div>
     </div>
-    <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 md:p-12 w-full max-w-md mx-4 fade-in shadow-2xl">
+
+    <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 md:p-10 w-full max-w-md mx-4 fade-in shadow-2xl z-10">
      <div class="text-center mb-8">
-      <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-gold-400 to-gold-600 rounded-full flex items-center justify-center shadow-lg">
-       <i data-lucide="tractor" class="w-10 h-10 text-white"></i>
+      <div class="w-24 h-24 mx-auto mb-4 bg-white rounded-full flex items-center justify-center shadow-lg p-2">
+       <img src="https://cdn-icons-png.flaticon.com/512/3210/3210064.png" alt="Logo" class="w-full h-full object-contain">
       </div>
-      <h1 class="font-display text-2xl font-bold text-white">Hikmah Machang Farm</h1>
-      <p class="text-farm-300 text-sm mt-1">Premium Islamic Livestock Farm</p>
+      <h1 class="font-display text-3xl font-bold text-white tracking-wide">Hikmah Machang</h1>
+      <p class="text-gold-400 text-sm mt-1 font-medium">Premium Islamic Livestock Farm</p>
      </div>
      
-     <div class="space-y-4">
+     <div class="space-y-5">
       <div>
-       <label class="text-farm-200 text-sm font-medium block mb-1">Username (Admin Sahaja)</label> 
-       <input id="loginUser" type="text" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-farm-300 focus:outline-none focus:border-gold-400 transition" placeholder="ID Admin">
+       <label class="text-farm-100 text-sm font-medium block mb-1">Username (Admin/Staff)</label> 
+       <input id="loginUser" type="text" class="w-full px-5 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition" placeholder="Masukkan ID">
       </div>
       <div>
-       <label class="text-farm-200 text-sm font-medium block mb-1">Password</label> 
-       <input id="loginPass" type="password" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-farm-300 focus:outline-none focus:border-gold-400 transition" placeholder="Kata Laluan">
+       <label class="text-farm-100 text-sm font-medium block mb-1">Password</label> 
+       <input id="loginPass" type="password" class="w-full px-5 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition" placeholder="Kata Laluan">
       </div>
-      <div id="loginError" class="text-red-400 text-sm hidden bg-red-900/50 p-2 rounded text-center"></div>
+      <div id="loginError" class="text-red-200 text-sm hidden bg-red-900/50 p-3 rounded-lg text-center border border-red-500/30"></div>
       
-      <button onclick="handleAdminLogin()" class="w-full py-3 bg-gradient-to-r from-gold-400 to-gold-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2"> 
-        <i data-lucide="shield-check" class="w-5 h-5"></i> Log Masuk Admin 
+      <button onclick="handleManualLogin()" class="w-full py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-gold-500/30 transition-all flex items-center justify-center gap-2"> 
+        <i data-lucide="log-in" class="w-5 h-5"></i> Log Masuk
       </button>
 
-      <div class="flex items-center my-4">
+      <div class="flex items-center my-6">
         <div class="flex-grow border-t border-white/20"></div>
-        <span class="px-3 text-white/50 text-sm">ATAU</span>
+        <span class="px-3 text-white/50 text-xs uppercase tracking-wider">Atau gunakan Google</span>
         <div class="flex-grow border-t border-white/20"></div>
       </div>
 
-      <button onclick="handleGoogleLogin()" class="w-full py-3 bg-white text-gray-800 font-semibold rounded-xl hover:bg-gray-100 transition-all flex items-center justify-center gap-2 shadow-md"> 
-        <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-        Log Masuk dengan Google (Staff)
+      <button onclick="handleGoogleLogin()" class="w-full py-3.5 bg-white text-gray-800 font-semibold rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-3 shadow-md"> 
+        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
+        Log Masuk Staff (Google)
       </button>
+      
+      <p class="text-center text-white/40 text-xs mt-4">Demo: admin / admin2026</p>
      </div>
     </div>
    </div>
 
-   <!-- MAIN APP (Dipendekkan struktur utama HTML - Kandungan Main App sama seperti kod asal anda, cuma masukkan div di bawah) -->
+   <!-- ================= MAIN APP ================= -->
    <div id="mainApp" class="h-full w-full hidden flex">
-    <aside id="sidebar" class="w-64 bg-farm-900 h-full flex-shrink-0 flex flex-col z-30 fixed md:relative transition-transform -translate-x-full md:translate-x-0">
-     <!-- [SAMA SEPERTI KOD ASAL] -->
-     <div class="p-5 border-b border-white/10">
+    
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="w-64 bg-farm-900 h-full flex-shrink-0 flex flex-col z-30 fixed md:relative transition-transform -translate-x-full md:translate-x-0 shadow-xl">
+     <div class="p-6 border-b border-white/10">
       <div class="flex items-center gap-3">
-       <div class="w-10 h-10 bg-gradient-to-br from-gold-400 to-gold-600 rounded-lg flex items-center justify-center">
-        <i data-lucide="tractor" class="w-5 h-5 text-white"></i>
+       <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center p-1">
+        <img src="https://cdn-icons-png.flaticon.com/512/3210/3210064.png" class="w-full h-full object-contain">
        </div>
        <div>
-        <h2 class="text-white font-semibold text-sm">Hikmah Machang</h2>
-        <p class="text-farm-400 text-xs" id="currentUserRole">Admin</p>
+        <h2 class="text-white font-display font-bold text-md leading-tight">Hikmah<br>Machang</h2>
+        <span id="currentUserRole" class="inline-block px-2 py-0.5 bg-gold-500/20 text-gold-400 text-[10px] rounded uppercase tracking-wider mt-1 font-bold border border-gold-500/30">Admin</span>
        </div>
       </div>
      </div>
-     <nav class="flex-1 py-4 overflow-y-auto">
-      <div class="space-y-1 px-3">
-       <button onclick="navigateTo('dashboard')" class="sidebar-item active w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/80 text-sm" data-page="dashboard"> <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard </button> 
-       <button onclick="navigateTo('pos')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/80 text-sm" data-page="pos"> <i data-lucide="shopping-cart" class="w-4 h-4"></i> POS Jualan </button> 
-       <button onclick="navigateTo('products')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/80 text-sm" data-page="products"> <i data-lucide="package" class="w-4 h-4"></i> Senarai Produk </button> 
-       <button onclick="navigateTo('history')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/80 text-sm" data-page="history"> <i data-lucide="history" class="w-4 h-4"></i> History Pembelian </button> 
-       <button onclick="navigateTo('customers')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/80 text-sm" data-page="customers"> <i data-lucide="users" class="w-4 h-4"></i> Customer </button> 
-       <button onclick="navigateTo('delivery')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/80 text-sm" data-page="delivery"> <i data-lucide="truck" class="w-4 h-4"></i> Delivery </button> 
-       <button id="settingsBtn" onclick="navigateTo('settings')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/80 text-sm" data-page="settings"> <i data-lucide="settings" class="w-4 h-4"></i> Admin Setting </button>
+
+     <nav class="flex-1 py-6 overflow-y-auto">
+      <div class="space-y-1.5 px-4">
+       <button onclick="navigateTo('dashboard')" class="sidebar-item active w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 text-sm font-medium" data-page="dashboard"> <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard </button> 
+       <button onclick="navigateTo('pos')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 text-sm font-medium" data-page="pos"> <i data-lucide="calculator" class="w-4 h-4"></i> POS Jualan </button> 
+       <button onclick="navigateTo('products')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 text-sm font-medium" data-page="products"> <i data-lucide="package" class="w-4 h-4"></i> Senarai Produk </button> 
+       <button onclick="navigateTo('history')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 text-sm font-medium" data-page="history"> <i data-lucide="clock" class="w-4 h-4"></i> History Pembelian </button> 
+       <button onclick="navigateTo('customers')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 text-sm font-medium" data-page="customers"> <i data-lucide="users" class="w-4 h-4"></i> Customer </button> 
+       <button onclick="navigateTo('delivery')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 text-sm font-medium" data-page="delivery"> <i data-lucide="truck" class="w-4 h-4"></i> Delivery </button> 
+       <div class="my-4 border-t border-white/10"></div>
+       <button id="settingsBtn" onclick="navigateTo('settings')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 text-sm font-medium" data-page="settings"> <i data-lucide="settings" class="w-4 h-4"></i> Admin Setting </button>
       </div>
      </nav>
-     <div class="p-3 border-t border-white/10">
-      <button onclick="handleLogout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 text-sm transition"> <i data-lucide="log-out" class="w-4 h-4"></i> Log Keluar </button>
+     <div class="p-4 border-t border-white/10">
+      <button onclick="handleLogout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 text-sm font-medium transition"> <i data-lucide="log-out" class="w-4 h-4"></i> Log Keluar </button>
      </div>
     </aside>
 
-    <main class="flex-1 h-full overflow-y-auto bg-gray-50">
-     <header class="bg-white border-b border-gray-200 px-4 md:px-6 py-3 flex items-center justify-between sticky top-0 z-20 no-print">
-      <div class="flex items-center gap-3">
-       <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-lg hover:bg-gray-100"> <i data-lucide="menu" class="w-5 h-5"></i> </button>
-       <h1 id="pageTitle" class="font-display font-semibold text-farm-900 text-lg">Dashboard</h1>
+    <!-- CONTENT AREA -->
+    <main class="flex-1 h-full overflow-y-auto bg-gray-50/50">
+     <!-- Top Header -->
+     <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-20 no-print shadow-sm">
+      <div class="flex items-center gap-4">
+       <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600"> <i data-lucide="menu" class="w-6 h-6"></i> </button>
+       <h1 id="pageTitle" class="font-display font-bold text-farm-900 text-xl tracking-tight">Dashboard</h1>
       </div>
-      <div class="flex items-center gap-3">
-       <span class="text-sm text-gray-500" id="currentDate"></span>
-       <div class="w-8 h-8 bg-farm-100 rounded-full flex items-center justify-center overflow-hidden">
+      <div class="flex items-center gap-4">
+       <div class="hidden sm:block text-right">
+         <p class="text-sm font-bold text-gray-800" id="currentUserNameDisplay">Admin</p>
+         <p class="text-xs text-gray-500" id="currentDate"></p>
+       </div>
+       <div class="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border-2 border-farm-100 shadow-sm">
         <img id="userAvatar" src="https://ui-avatars.com/api/?name=Admin&background=15803d&color=fff" class="w-full h-full object-cover">
        </div>
       </div>
      </header>
-     
-     <div class="p-4 md:p-6" id="appPagesContainer">
-        <!-- Letakkan semula KESEMUA DIV muka surat anda di sini (<div id="page-dashboard">, <div id="page-pos">, dan lain-lain) dari kod asal anda. Untuk menjimatkan ruang, saya ringkaskan. Sila COPY PASTE bahagian "Pages Container" dari kod asal anda ke sini. -->
+
+     <!-- PAGES CONTAINER -->
+     <div class="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+      
+      <!-- 1. DASHBOARD -->
+      <div id="page-dashboard" class="page fade-in">
+       <!-- Stats Grid -->
+       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+        <div class="bg-white rounded-2xl p-6 border border-gray-100 card-hover shadow-sm">
+         <div class="flex justify-between items-start mb-4">
+          <div><p class="text-sm font-medium text-gray-500 mb-1">Jualan Hari Ini</p><h3 class="text-2xl font-bold text-farm-900" id="statTodaySales">RM 0</h3></div>
+          <div class="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center"><i data-lucide="trending-up" class="w-5 h-5 text-green-600"></i></div>
+         </div>
+        </div>
+        <div class="bg-white rounded-2xl p-6 border border-gray-100 card-hover shadow-sm">
+         <div class="flex justify-between items-start mb-4">
+          <div><p class="text-sm font-medium text-gray-500 mb-1">Jumlah Transaksi</p><h3 class="text-2xl font-bold text-farm-900" id="statTotalTx">0</h3></div>
+          <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center"><i data-lucide="receipt" class="w-5 h-5 text-blue-600"></i></div>
+         </div>
+        </div>
+        <div class="bg-white rounded-2xl p-6 border border-gray-100 card-hover shadow-sm">
+         <div class="flex justify-between items-start mb-4">
+          <div><p class="text-sm font-medium text-gray-500 mb-1">Deposit (Pending)</p><h3 class="text-2xl font-bold text-farm-900" id="statPending">0</h3></div>
+          <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center"><i data-lucide="wallet" class="w-5 h-5 text-amber-600"></i></div>
+         </div>
+        </div>
+        <div class="bg-white rounded-2xl p-6 border border-gray-100 card-hover shadow-sm">
+         <div class="flex justify-between items-start mb-4">
+          <div><p class="text-sm font-medium text-gray-500 mb-1">Total Pelanggan</p><h3 class="text-2xl font-bold text-farm-900" id="statCustomers">0</h3></div>
+          <div class="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center"><i data-lucide="users" class="w-5 h-5 text-purple-600"></i></div>
+         </div>
+        </div>
+       </div>
+
+       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+         <div class="flex justify-between items-center mb-6"><h3 class="font-bold text-lg text-farm-900">Transaksi Terkini</h3><button onclick="navigateTo('history')" class="text-sm text-farm-600 font-medium hover:underline">Lihat Semua</button></div>
+         <div id="recentTransactions" class="space-y-4"><p class="text-gray-400 text-sm text-center py-6">Belum ada transaksi</p></div>
+        </div>
+        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+         <h3 class="font-bold text-lg text-farm-900 mb-6">Status Stok Produk</h3>
+         <div id="stockOverview" class="space-y-4"></div>
+        </div>
+       </div>
+      </div>
+
+      <!-- 2. POS JUALAN -->
+      <div id="page-pos" class="page hidden fade-in">
+       <div class="flex flex-col lg:flex-row gap-6">
+        <!-- Products Grid -->
+        <div class="flex-1">
+         <div class="mb-6 relative">
+          <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+          <input type="text" id="posSearch" placeholder="Cari nama produk..." class="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:border-farm-500 focus:ring-2 focus:ring-farm-200 shadow-sm transition" oninput="renderPOSProducts()">
+         </div>
+         <div id="posProducts" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+        </div>
+        <!-- Cart Sidebar -->
+        <div class="w-full lg:w-[350px] bg-white rounded-3xl border border-gray-200 p-6 h-fit lg:sticky lg:top-24 shadow-sm flex flex-col max-h-[80vh]">
+         <h3 class="font-bold text-farm-900 text-lg mb-4 flex items-center gap-2"><i data-lucide="shopping-cart" class="w-5 h-5 text-farm-600"></i> Troli Pembelian</h3>
+         <div id="cartItems" class="flex-1 overflow-y-auto space-y-3 mb-6 pr-2 min-h-[200px]">
+          <p class="text-gray-400 text-sm text-center py-10 flex flex-col items-center gap-2">
+            <i data-lucide="package-open" class="w-8 h-8 text-gray-300"></i> Troli masih kosong
+          </p>
+         </div>
+         <div class="border-t border-gray-100 pt-4 space-y-3 bg-white">
+          <div class="flex justify-between text-sm text-gray-600"><span>Jumlah Item:</span><span id="cartQty" class="font-bold text-gray-900">0</span></div>
+          <div class="flex justify-between text-xl font-bold"><span>Total:</span><span id="cartTotal" class="text-farm-700">RM 0.00</span></div>
+          <button onclick="goToCheckout()" id="checkoutBtn" class="w-full mt-2 py-4 bg-farm-600 text-white font-bold rounded-xl hover:bg-farm-700 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2" disabled> 
+            Checkout Bayaran <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+         </div>
+        </div>
+       </div>
+      </div>
+
+      <!-- 3. CHECKOUT PAGE -->
+      <div id="page-checkout" class="page hidden fade-in">
+       <div class="max-w-3xl mx-auto bg-white rounded-3xl border border-gray-200 p-6 md:p-10 shadow-sm">
+        <div class="flex items-center gap-3 mb-8 pb-4 border-b border-gray-100">
+          <button onclick="navigateTo('pos')" class="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center hover:bg-gray-200 transition"><i data-lucide="arrow-left" class="w-5 h-5 text-gray-600"></i></button>
+          <h2 class="font-display font-bold text-farm-900 text-2xl">Maklumat Pembelian</h2>
+        </div>
+        
+        <form id="checkoutForm" onsubmit="processCheckout(event)" class="space-y-6">
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+           <label class="text-sm font-semibold text-gray-700 block mb-2">Nama Pembeli <span class="text-red-500">*</span></label> 
+           <input id="buyerName" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 focus:ring-1 focus:ring-farm-500 bg-gray-50 focus:bg-white transition" placeholder="Cth: Ahmad Albab">
+          </div>
+          <div>
+           <label class="text-sm font-semibold text-gray-700 block mb-2">No. Telefon <span class="text-red-500">*</span></label> 
+           <input id="buyerPhone" type="tel" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 focus:ring-1 focus:ring-farm-500 bg-gray-50 focus:bg-white transition" placeholder="01X-XXXXXXX">
+          </div>
+         </div>
+         <div>
+          <label class="text-sm font-semibold text-gray-700 block mb-2">Alamat Lengkap <span class="text-red-500">*</span></label> 
+          <textarea id="buyerAddress" required rows="3" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 focus:ring-1 focus:ring-farm-500 bg-gray-50 focus:bg-white transition" placeholder="Alamat penghantaran..."></textarea>
+         </div>
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+           <label class="text-sm font-semibold text-gray-700 block mb-2">Tarikh Delivery (Pilihan)</label> 
+           <input id="deliveryDate" type="date" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 bg-gray-50 focus:bg-white transition">
+          </div>
+          <div>
+           <label class="text-sm font-semibold text-gray-700 block mb-2">Status / Jenis Bayaran <span class="text-red-500">*</span></label> 
+           <select id="paymentType" required onchange="toggleDeposit()" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 bg-gray-50 focus:bg-white transition font-medium"> 
+             <option value="full">Bayar Penuh (Lunas)</option> 
+             <option value="deposit">Deposit (Hutang Baki)</option> 
+           </select>
+          </div>
+         </div>
+         <div id="depositSection" class="hidden bg-amber-50 p-4 rounded-xl border border-amber-100">
+          <label class="text-sm font-semibold text-amber-800 block mb-2">Jumlah Deposit Dibayar (RM)</label> 
+          <input id="depositAmount" type="number" min="0" step="0.01" class="w-full px-4 py-3 border border-amber-200 rounded-xl focus:outline-none focus:border-amber-500 bg-white" oninput="updateBalance()" placeholder="0.00">
+         </div>
+         <div>
+          <label class="text-sm font-semibold text-gray-700 block mb-2">Catatan Tambahan (Resit)</label> 
+          <textarea id="buyerNotes" rows="2" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 bg-gray-50 transition" placeholder="Pesanan tambahan..."></textarea>
+         </div>
+         
+         <!-- Ringkasan Bayaran -->
+         <div class="bg-farm-900 text-white rounded-2xl p-6 space-y-3 shadow-lg">
+          <div class="flex justify-between items-center"><span class="text-farm-200 font-medium">Jumlah Keseluruhan:</span><span id="checkoutTotal" class="text-2xl font-bold text-gold-400">RM 0.00</span></div>
+          <div id="balanceRow" class="flex justify-between items-center hidden pt-3 border-t border-white/10"><span class="text-farm-200 font-medium">Baki Perlu Dibayar:</span><span id="checkoutBalance" class="text-xl font-bold text-red-400">RM 0.00</span></div>
+         </div>
+
+         <button type="submit" id="processBtn" class="w-full py-4 bg-gradient-to-r from-farm-600 to-farm-700 text-white font-bold text-lg rounded-xl hover:shadow-xl hover:shadow-farm-600/30 transition-all flex items-center justify-center gap-2">
+           <i data-lucide="check-circle" class="w-5 h-5"></i> Sahkan Tempahan & Cetak Resit
+         </button>
+        </form>
+       </div>
+      </div>
+
+      <!-- 4. INVOICE / RESIT PAGE -->
+      <div id="page-invoice" class="page hidden fade-in">
+       <div id="printArea" class="max-w-2xl mx-auto bg-white rounded-2xl border border-gray-200 p-8 md:p-12 shadow-sm relative">
+        <!-- Logo & Header -->
+        <div class="text-center mb-8 border-b border-dashed border-gray-300 pb-6">
+         <img src="https://cdn-icons-png.flaticon.com/512/3210/3210064.png" class="w-16 h-16 mx-auto mb-3 opacity-90">
+         <h2 class="font-display text-2xl font-bold text-gray-900">Hikmah Machang Farm</h2>
+         <p class="text-sm text-gray-500 mt-1">Premium Islamic Livestock Farm</p>
+         
+         <div class="flex justify-between items-end mt-6 text-left">
+           <div>
+             <p class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">No. Resit</p>
+             <p class="text-sm font-bold text-gray-800" id="invNoDisplay">HMF-0000</p>
+           </div>
+           <div class="text-right">
+             <p class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">Tarikh</p>
+             <p class="text-sm font-bold text-gray-800" id="invDateDisplay">01/01/2026</p>
+           </div>
+         </div>
+        </div>
+
+        <!-- Maklumat Pembeli -->
+        <div class="mb-8 p-4 bg-gray-50 rounded-xl border border-gray-100">
+         <p class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">Terima Kasih Kepada:</p>
+         <p class="font-bold text-gray-800 text-lg" id="invName">Nama</p>
+         <p class="text-gray-600 mt-1 flex items-center gap-2"><i data-lucide="phone" class="w-3 h-3"></i> <span id="invPhone">Phone</span></p>
+         <p class="text-gray-600 mt-1 flex items-start gap-2"><i data-lucide="map-pin" class="w-3 h-3 mt-1"></i> <span id="invAddress">Alamat</span></p>
+        </div>
+
+        <!-- Table Item -->
+        <table class="w-full text-sm mb-6">
+         <thead>
+           <tr class="border-b-2 border-gray-800 text-gray-800">
+             <th class="text-left py-2 pb-3 font-bold uppercase tracking-wider text-xs">Produk</th>
+             <th class="text-center pb-3 font-bold uppercase tracking-wider text-xs w-16">Kuantiti</th>
+             <th class="text-right pb-3 font-bold uppercase tracking-wider text-xs w-24">Jumlah</th>
+           </tr>
+         </thead>
+         <tbody id="invItemsBody" class="text-gray-600"></tbody>
+        </table>
+
+        <!-- Total Area -->
+        <div class="border-t-2 border-gray-800 pt-4 space-y-2">
+         <div class="flex justify-between items-center">
+           <span class="font-bold text-gray-800 uppercase text-sm">Jumlah Besar</span>
+           <span class="font-bold text-xl text-gray-900" id="invTotal">RM 0.00</span>
+         </div>
+         <div id="invDepositArea" class="hidden">
+           <div class="flex justify-between items-center mt-2 text-green-700 bg-green-50 p-2 rounded">
+             <span class="font-medium text-sm">Telah Dibayar (Deposit)</span>
+             <span class="font-bold" id="invDeposit">RM 0.00</span>
+           </div>
+           <div class="flex justify-between items-center mt-2 text-red-600 bg-red-50 p-2 rounded">
+             <span class="font-medium text-sm">Baki Belum Jelas</span>
+             <span class="font-bold text-lg" id="invBalance">RM 0.00</span>
+           </div>
+         </div>
+        </div>
+
+        <!-- Status & QR Code -->
+        <div class="mt-8 flex justify-between items-end border-t border-dashed border-gray-300 pt-6">
+          <div>
+            <p class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">Status Bayaran</p>
+            <span id="invStatusBadge" class="px-4 py-1.5 rounded-full text-sm font-bold border">Status</span>
+          </div>
+          <!-- Tempat QR Code Generate -->
+          <div id="qrcode" class="p-1 bg-white border border-gray-200 rounded-lg"></div>
+        </div>
+        
+        <div class="mt-8 text-center text-xs text-gray-400 print-only">
+         <p>Jazakumullahu Khairan. Semoga diberkati.</p>
+         <p>Sistem POS oleh Hikmah Machang Farm.</p>
+        </div>
+       </div>
+
+       <!-- Action Buttons -->
+       <div class="max-w-2xl mx-auto mt-6 flex flex-col sm:flex-row gap-4 no-print">
+        <button onclick="window.print()" class="flex-1 py-4 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-900 transition flex items-center justify-center gap-2 shadow-md"> <i data-lucide="printer" class="w-5 h-5"></i> Print Resit </button> 
+        <button onclick="navigateTo('pos')" class="flex-1 py-4 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition flex items-center justify-center gap-2"> <i data-lucide="shopping-bag" class="w-5 h-5"></i> Buat Jualan Baru </button>
+       </div>
+      </div>
+
+      <!-- 5. SENARAI PRODUK (VIEW) -->
+      <div id="page-products" class="page hidden fade-in">
+       <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <h3 class="font-bold text-farm-900 text-lg mb-6">Katalog Produk</h3>
+        <div id="productsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+       </div>
+      </div>
+
+      <!-- 6. HISTORY PEMBELIAN -->
+      <div id="page-history" class="page hidden fade-in">
+       <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <div class="flex flex-col md:flex-row gap-4 mb-6">
+         <div class="flex-1 relative">
+           <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+           <input type="text" id="historySearch" placeholder="Cari nama atau no resit..." class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-farm-500 focus:bg-white transition" oninput="renderHistory()">
+         </div>
+         <select id="historyFilter" class="w-full md:w-48 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-farm-500 font-medium" onchange="renderHistory()"> 
+           <option value="all">Semua Status</option> 
+           <option value="deposit">Deposit Berbaki</option> 
+           <option value="paid">Selesai Bayar</option> 
+         </select>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse min-w-[600px]">
+            <thead>
+              <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                <th class="p-4 rounded-tl-xl">No. Resit / Tarikh</th>
+                <th class="p-4">Pelanggan</th>
+                <th class="p-4">Jumlah (RM)</th>
+                <th class="p-4">Status</th>
+                <th class="p-4 rounded-tr-xl text-right">Tindakan</th>
+              </tr>
+            </thead>
+            <tbody id="historyListTable" class="divide-y divide-gray-100"></tbody>
+          </table>
+        </div>
+       </div>
+      </div>
+
+      <!-- 7. CUSTOMERS -->
+      <div id="page-customers" class="page hidden fade-in">
+       <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <h3 class="font-bold text-farm-900 text-lg mb-6">Data Pelanggan</h3>
+        <div id="customersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+       </div>
+      </div>
+
+      <!-- 8. DELIVERY -->
+      <div id="page-delivery" class="page hidden fade-in">
+       <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <h3 class="font-bold text-farm-900 text-lg mb-6">Jadual Penghantaran</h3>
+        <div id="deliveryList" class="space-y-4"></div>
+       </div>
+      </div>
+
+      <!-- 9. ADMIN SETTINGS -->
+      <div id="page-settings" class="page hidden fade-in">
+       <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+         <div>
+           <h3 class="font-bold text-farm-900 text-lg">Pengurusan Produk</h3>
+           <p class="text-sm text-gray-500">Tambah, buang, atau ubah harga dan stok sedia ada.</p>
+         </div>
+         <button onclick="showAddProduct()" class="px-5 py-2.5 bg-farm-600 text-white rounded-xl text-sm font-bold hover:bg-farm-700 transition flex items-center gap-2 shadow-sm"> 
+           <i data-lucide="plus" class="w-4 h-4"></i> Tambah Baru
+         </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                <th class="p-4 rounded-tl-xl">Produk</th>
+                <th class="p-4">Harga (RM)</th>
+                <th class="p-4">Stok</th>
+                <th class="p-4">Status</th>
+                <th class="p-4 rounded-tr-xl text-right">Tindakan</th>
+              </tr>
+            </thead>
+            <tbody id="settingsProductsTable" class="divide-y divide-gray-100"></tbody>
+          </table>
+        </div>
+       </div>
+
+       <!-- MODAL TAMBAH/EDIT PRODUK -->
+       <div id="productModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl transform transition-all">
+         <div class="flex justify-between items-center mb-6">
+           <h4 id="modalTitle" class="font-bold text-xl text-farm-900">Tambah Produk Baru</h4>
+           <button onclick="closeProductModal()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-6 h-6"></i></button>
+         </div>
+         <form id="productForm" onsubmit="saveProduct(event)" class="space-y-4">
+          <input type="hidden" id="editProductId">
+          
+          <div>
+           <label class="text-sm font-semibold text-gray-700 block mb-1">Nama Produk <span class="text-red-500">*</span></label> 
+           <input id="prodName" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:border-farm-500 transition" placeholder="Cth: Lembu Sado">
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4">
+           <div>
+            <label class="text-sm font-semibold text-gray-700 block mb-1">Harga (RM) <span class="text-red-500">*</span></label> 
+            <input id="prodPrice" type="number" required min="0" step="0.01" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:border-farm-500 transition" placeholder="0.00">
+           </div>
+           <div>
+            <label class="text-sm font-semibold text-gray-700 block mb-1">Kuantiti Stok <span class="text-red-500">*</span></label> 
+            <input id="prodStock" type="number" required min="0" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:border-farm-500 transition" placeholder="0">
+           </div>
+          </div>
+          
+          <div>
+           <label class="text-sm font-semibold text-gray-700 block mb-1">Deskripsi Ringkas</label> 
+           <input id="prodDesc" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:border-farm-500 transition" placeholder="Cth: Berat 250kg-300kg">
+          </div>
+
+          <div>
+           <label class="text-sm font-semibold text-gray-700 block mb-1">URL Gambar (Placeholder)</label> 
+           <input id="prodImage" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:border-farm-500 transition" placeholder="Cth: https://gambar-lembu.jpg">
+           <p class="text-xs text-gray-400 mt-1">Boleh guna link gambar. Jika kosong, gambar default akan digunakan.</p>
+          </div>
+
+          <div class="flex gap-3 pt-4 mt-2 border-t border-gray-100">
+           <button type="button" onclick="closeProductModal()" class="flex-1 py-3 border-2 border-gray-200 rounded-xl text-gray-600 font-bold hover:bg-gray-50 transition">Batal</button> 
+           <button type="submit" class="flex-1 py-3 bg-farm-600 text-white rounded-xl font-bold hover:bg-farm-700 shadow-md transition">Simpan Data</button>
+          </div>
+         </form>
+        </div>
+       </div>
+      </div>
+
      </div>
     </main>
    </div>
   </div>
-  
-  <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
-  <script>
-// ==========================================
-// 1. KONFIGURASI FIREBASE (GANTIKAN INI!)
-// ==========================================
+  <!-- Toast Notifikasi -->
+  <div id="toastContainer" class="fixed top-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+<script>
+// =====================================================================
+// 1. KONFIGURASI PANGKALAN DATA (FIREBASE + LOCAL DEMO FALLBACK)
+// =====================================================================
+// PENTING: Masukkan kod Firebase anda di sini nanti.
+// Jika dibiarkan "YOUR_API_KEY", sistem automatik bertukar jadi DEMO MODE.
 const firebaseConfig = {
   apiKey: "AIzaSyD60OE4KtSgZJktgYfIulrmHozELemXqQw",
   authDomain: "hikmah-pos-6290f.firebaseapp.com",
@@ -167,205 +525,616 @@ const firebaseConfig = {
   measurementId: "G-PF566F81Q7"
 };
 
-// Inisialisasi Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
-const googleProvider = new firebase.auth.GoogleAuthProvider();
+// Data Asas (Demo Mode / Fallback) jika Firebase tiada
+const defaultData = [
+  { id: 'p1', name: 'Lembu Grade A', desc: 'Sado (250-300kg)', price: 8500, stock: 12, active: true, image: 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=500&q=80' },
+  { id: 'p2', name: 'Lembu Grade B', desc: 'Biasa (200-250kg)', price: 6500, stock: 8, active: true, image: 'https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?w=500&q=80' },
+  { id: 'p3', name: 'Kambing', desc: 'Kambing Dewasa Jantan', price: 1200, stock: 25, active: true, image: 'https://images.unsplash.com/photo-1524024973431-2ad0b080fb8e?w=500&q=80' },
+  { id: 'p4', name: 'Biri-Biri', desc: 'Biri-biri pedaging', price: 850, stock: 15, active: true, image: 'https://images.unsplash.com/photo-1484557985045-edf25e08da73?w=500&q=80' }
+];
 
-// ==========================================
-// 2. STATE & PEMBOLEHUBAH
-// ==========================================
+// Variables System
 let currentUser = null;
 let currentPage = 'dashboard';
 let cart = [];
-let allOrders = [];
-let invoiceCounter = 1;
 let products = [];
+let allOrders = [];
+let isDemoMode = false;
+let db = null, auth = null, googleProvider = null;
+
+// Initialize System
+function initSystem() {
+  if(firebaseConfig.apiKey === "YOUR_API_KEY" || firebaseConfig.apiKey === "") {
+    console.warn("DEMO MODE AKTIF: Konfigurasi Firebase tiada. Sistem menggunakan Local Data.");
+    isDemoMode = true;
+    products = [...defaultData]; // Muat data mock
+    renderAllViews();
+  } else {
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      auth = firebase.auth();
+      googleProvider = new firebase.auth.GoogleAuthProvider();
+      console.log("Firebase Disambung Berjaya.");
+    } catch (e) {
+      console.error("Gagal sambung Firebase, fallback ke Demo.", e);
+      isDemoMode = true;
+      products = [...defaultData];
+    }
+  }
+}
+initSystem(); // Run immediately
 
 // ==========================================
-// 3. AUTHENTICATION LOGIC
+// 2. LOG MASUK (AUTHENTICATION)
 // ==========================================
-function handleAdminLogin() {
+function handleManualLogin() {
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value;
   
-  // Login khusus Admin seperti yang diminta
   if (u === 'admin' && p === 'admin2026') {
-    currentUser = { username: 'Admin Utama', role: 'Admin', photoURL: `https://ui-avatars.com/api/?name=Admin&background=15803d&color=fff` };
-    completeLoginProcess();
+    currentUser = { username: 'Admin Farm', role: 'Admin', photo: 'https://ui-avatars.com/api/?name=Ad&background=d4a843&color=fff' };
+    completeLogin();
+  } else if (u === 'staff' && p === 'staff123') {
+    currentUser = { username: 'Staff POS', role: 'Staff', photo: 'https://ui-avatars.com/api/?name=St&background=15803d&color=fff' };
+    completeLogin();
   } else {
-    showAuthError('Kredensial Admin salah. Sila cuba lagi.');
+    showError('Kredensial salah. (Guna admin/admin2026)');
   }
 }
 
 function handleGoogleLogin() {
-  auth.signInWithPopup(googleProvider)
-    .then((result) => {
-      const user = result.user;
-      currentUser = { 
-        username: user.displayName, 
-        email: user.email, 
-        role: 'Staff', 
-        photoURL: user.photoURL 
-      };
-      completeLoginProcess();
-    })
-    .catch((error) => {
-      showAuthError(error.message);
-    });
+  if(isDemoMode) {
+    currentUser = { username: 'Google Staff', role: 'Staff', photo: 'https://ui-avatars.com/api/?name=GS&background=4285F4&color=fff' };
+    showToast('Log Masuk Mock Google Berjaya', 'success');
+    completeLogin();
+    return;
+  }
+  
+  auth.signInWithPopup(googleProvider).then((result) => {
+    currentUser = { username: result.user.displayName, email: result.user.email, role: 'Staff', photo: result.user.photoURL };
+    completeLogin();
+  }).catch((err) => showError(err.message));
 }
 
-function showAuthError(msg) {
-  const err = document.getElementById('loginError');
-  err.textContent = msg;
-  err.classList.remove('hidden');
+function showError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg; el.classList.remove('hidden');
 }
 
-function completeLoginProcess() {
+function completeLogin() {
   document.getElementById('loginPage').classList.add('hidden');
   document.getElementById('mainApp').classList.remove('hidden');
+  
   document.getElementById('currentUserRole').textContent = currentUser.role;
-  document.getElementById('userAvatar').src = currentUser.photoURL;
+  document.getElementById('currentUserNameDisplay').textContent = currentUser.username;
+  document.getElementById('userAvatar').src = currentUser.photo;
   
-  const settingsBtn = document.getElementById('settingsBtn');
-  settingsBtn.style.display = (currentUser.role === 'Admin') ? 'flex' : 'none';
+  document.getElementById('settingsBtn').style.display = (currentUser.role === 'Admin') ? 'flex' : 'none';
   
-  initRealtimeListeners();
+  if(!isDemoMode) initFirebaseListeners();
+  
   navigateTo('dashboard');
-  lucide.createIcons();
+  showToast(`Selamat datang, ${currentUser.username}!`, 'success');
 }
 
 function handleLogout() {
-  auth.signOut().then(() => {
-    currentUser = null;
-    document.getElementById('mainApp').classList.add('hidden');
-    document.getElementById('loginPage').classList.remove('hidden');
-    document.getElementById('loginUser').value = '';
-    document.getElementById('loginPass').value = '';
-    document.getElementById('loginError').classList.add('hidden');
-  });
+  if(isDemoMode) { resetLog(); return; }
+  auth.signOut().then(resetLog);
+}
+
+function resetLog() {
+  currentUser = null;
+  document.getElementById('mainApp').classList.add('hidden');
+  document.getElementById('loginPage').classList.remove('hidden');
+  document.getElementById('loginUser').value = ''; document.getElementById('loginPass').value = '';
+  document.getElementById('loginError').classList.add('hidden');
 }
 
 // ==========================================
-// 4. FIREBASE REALTIME LISTENERS
+// 3. LISTENERS DATA & RENDERER
 // ==========================================
-function initRealtimeListeners() {
-  // Listen to Products
-  db.collection("products").onSnapshot((snapshot) => {
+function initFirebaseListeners() {
+  // Listen Products
+  db.collection("products").onSnapshot((snap) => {
     products = [];
-    snapshot.forEach((doc) => {
-      products.push({ id: doc.id, ...doc.data() });
-    });
-    
-    // Jika DB kosong (First time run), masukkan data default
-    if (products.length === 0) {
-      seedDefaultProducts();
-    }
-    
-    if(currentPage === 'pos') renderPOSProducts();
-    if(currentPage === 'products' || currentPage === 'settings') renderProductsList(); // Gabung render
+    snap.forEach((doc) => products.push({ id: doc.id, ...doc.data() }));
+    if(products.length === 0) seedFirebaseDefault();
+    renderAllViews();
   });
-
-  // Listen to Orders (History)
-  db.collection("orders").orderBy("created_at", "desc").onSnapshot((snapshot) => {
+  
+  // Listen Orders
+  db.collection("orders").orderBy("created_at", "desc").onSnapshot((snap) => {
     allOrders = [];
-    snapshot.forEach((doc) => {
-      allOrders.push({ id: doc.id, ...doc.data() });
-    });
-    
-    invoiceCounter = allOrders.length + 1;
-    
-    updateDashboardStats();
-    if (currentPage === 'history') renderHistory();
-    if (currentPage === 'customers') renderCustomers();
-    if (currentPage === 'delivery') renderDelivery();
-    if (currentPage === 'dashboard') renderRecentTransactions();
+    snap.forEach((doc) => allOrders.push({ id: doc.id, ...doc.data() }));
+    renderAllViews();
   });
 }
 
-function seedDefaultProducts() {
-  const defaultProds = [
-    { name: 'Lembu Grade A', desc: '250-300kg', price: 8500, stock: 12, active: true, emoji: '🐂' },
-    { name: 'Lembu Grade B', desc: '200-250kg', price: 6500, stock: 8, active: true, emoji: '🐄' },
-    { name: 'Kambing', desc: 'Kambing dewasa', price: 1200, stock: 25, active: true, emoji: '🐐' },
-  ];
-  defaultProds.forEach(p => db.collection("products").add(p));
+function seedFirebaseDefault() {
+  defaultData.forEach(p => db.collection("products").add(p));
+}
+
+function renderAllViews() {
+  updateDashboardStats();
+  if(currentPage === 'dashboard') { renderRecentTransactions(); renderStockOverview(); }
+  if(currentPage === 'pos') renderPOSProducts();
+  if(currentPage === 'products') renderProductsGrid();
+  if(currentPage === 'history') renderHistory();
+  if(currentPage === 'customers') renderCustomers();
+  if(currentPage === 'delivery') renderDelivery();
+  if(currentPage === 'settings') renderSettingsTable();
+  lucide.createIcons();
 }
 
 // ==========================================
-// 5. UPDATE CHECKOUT UNTUK GUNA FIREBASE
+// 4. NAVIGATION
 // ==========================================
+function navigateTo(page) {
+  currentPage = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+  document.getElementById('page-' + page).classList.remove('hidden');
+  
+  document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active', 'bg-white/10', 'border-l-4', 'border-gold-400'));
+  const btn = document.querySelector(`.sidebar-item[data-page="${page}"]`);
+  if(btn) { btn.classList.add('active', 'bg-white/10', 'border-l-4', 'border-gold-400'); }
+
+  const titles = { dashboard:'Dashboard', pos:'Sistem POS Jualan', products:'Katalog Produk', history:'Rekod Pembelian', customers:'Senarai Pelanggan', delivery:'Jadual Penghantaran', settings:'Admin Settings', checkout:'Checkout', invoice:'Resit Pembelian' };
+  document.getElementById('pageTitle').textContent = titles[page];
+  
+  renderAllViews();
+  
+  // Tutup sidebar di mobile
+  document.getElementById('sidebar').classList.add('-translate-x-full');
+  document.getElementById('sidebar').classList.remove('translate-x-0');
+}
+function toggleSidebar() {
+  const s = document.getElementById('sidebar');
+  s.classList.toggle('-translate-x-full'); s.classList.toggle('translate-x-0');
+}
+
+// ==========================================
+// 5. POS JUALAN LOGIC (GAMBAR HAIWAN)
+// ==========================================
+function renderPOSProducts() {
+  const search = (document.getElementById('posSearch')?.value || '').toLowerCase();
+  const c = document.getElementById('posProducts');
+  const filtered = products.filter(p => p.active && p.name.toLowerCase().includes(search));
+  
+  c.innerHTML = filtered.map(p => {
+    const inCart = cart.find(x => x.id === p.id);
+    const qty = inCart ? inCart.qty : 0;
+    const imgUrl = p.image || 'https://via.placeholder.com/300x200?text=Tiada+Gambar';
+    
+    return `
+      <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden card-hover shadow-sm flex flex-col">
+        <div class="h-40 w-full bg-gray-100 relative">
+          <img src="${imgUrl}" class="w-full h-full object-cover" alt="${p.name}">
+          ${p.stock <= 0 ? `<div class="absolute inset-0 bg-black/60 flex items-center justify-center"><span class="text-white font-bold bg-red-600 px-3 py-1 rounded-full text-sm">Kehabisan Stok</span></div>` : ''}
+        </div>
+        <div class="p-4 flex-1 flex flex-col">
+          <h4 class="font-bold text-gray-900 text-lg line-clamp-1">${p.name}</h4>
+          <p class="text-xs text-gray-500 mb-2">${p.desc}</p>
+          <p class="text-xl font-bold text-farm-700 mb-2 mt-auto">RM ${p.price.toLocaleString()}</p>
+          <p class="text-xs font-medium text-gray-400 mb-4 bg-gray-50 inline-block px-2 py-1 rounded w-fit">Stok: ${p.stock}</p>
+          
+          <div class="flex items-center justify-between gap-3">
+            <button onclick="updateCart('${p.id}',-1)" class="w-10 h-10 bg-gray-100 text-gray-600 rounded-xl flex items-center justify-center hover:bg-red-50 hover:text-red-600 transition font-bold text-lg disabled:opacity-50" ${qty<=0?'disabled':''}>−</button>
+            <input type="number" value="${qty}" onchange="setCartQty('${p.id}',this.value)" class="w-16 text-center border border-gray-200 rounded-xl py-2 font-bold focus:outline-none focus:border-farm-500 bg-gray-50">
+            <button onclick="updateCart('${p.id}',1)" class="w-10 h-10 bg-farm-600 text-white rounded-xl flex items-center justify-center hover:bg-farm-700 transition font-bold text-lg shadow-sm disabled:opacity-50" ${qty>=p.stock?'disabled':''}>+</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+  updateCartDisplay();
+}
+
+function updateCart(id, delta) {
+  const p = products.find(x => x.id === id);
+  let item = cart.find(c => c.id === id);
+  if(!item) { item = { id: id, qty: 0 }; cart.push(item); }
+  item.qty = Math.max(0, Math.min(p.stock, item.qty + delta));
+  if(item.qty === 0) cart = cart.filter(c => c.id !== id);
+  renderPOSProducts();
+}
+function setCartQty(id, val) {
+  const p = products.find(x => x.id === id);
+  const qty = Math.max(0, Math.min(p.stock, parseInt(val)||0));
+  let item = cart.find(c => c.id === id);
+  if(qty === 0) cart = cart.filter(c => c.id !== id);
+  else { if(!item){ item = {id:id, qty:0}; cart.push(item); } item.qty = qty; }
+  renderPOSProducts();
+}
+
+function updateCartDisplay() {
+  const c = document.getElementById('cartItems');
+  const totalQty = cart.reduce((s,x) => s + x.qty, 0);
+  const totalPrice = cart.reduce((s,x) => { const p = products.find(i=>i.id===x.id); return s + (p.price*x.qty); }, 0);
+  
+  if(cart.length === 0) {
+    c.innerHTML = '<p class="text-gray-400 text-sm text-center py-10 flex flex-col items-center gap-2"><i data-lucide="package-open" class="w-8 h-8 text-gray-300"></i> Troli kosong</p>';
+  } else {
+    c.innerHTML = cart.map(x => {
+      const p = products.find(i=>i.id===x.id);
+      return `
+        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100 mb-2">
+          <div class="flex-1 min-w-0 pr-2">
+            <p class="font-bold text-sm text-gray-800 line-clamp-1">${p.name}</p>
+            <p class="text-xs text-gray-500">RM ${p.price.toLocaleString()} x ${x.qty}</p>
+          </div>
+          <span class="font-bold text-farm-700 whitespace-nowrap">RM ${(p.price*x.qty).toLocaleString()}</span>
+        </div>`;
+    }).join('');
+  }
+  document.getElementById('cartQty').textContent = totalQty;
+  document.getElementById('cartTotal').textContent = 'RM ' + totalPrice.toLocaleString(undefined,{minimumFractionDigits:2});
+  document.getElementById('checkoutBtn').disabled = cart.length === 0;
+  lucide.createIcons();
+}
+
+// ==========================================
+// 6. CHECKOUT LOGIC
+// ==========================================
+function goToCheckout() {
+  if(cart.length === 0) return;
+  const t = cart.reduce((s,x)=>{ const p=products.find(i=>i.id===x.id); return s+(p.price*x.qty);},0);
+  document.getElementById('checkoutTotal').textContent = 'RM ' + t.toLocaleString(undefined,{minimumFractionDigits:2});
+  updateBalance();
+  navigateTo('checkout');
+}
+
+function toggleDeposit() {
+  const isDep = document.getElementById('paymentType').value === 'deposit';
+  document.getElementById('depositSection').classList.toggle('hidden', !isDep);
+  document.getElementById('balanceRow').classList.toggle('hidden', !isDep);
+  if(!isDep) document.getElementById('depositAmount').value = '';
+  updateBalance();
+}
+
+function updateBalance() {
+  const t = cart.reduce((s,x)=>{ const p=products.find(i=>i.id===x.id); return s+(p.price*x.qty);},0);
+  const dep = parseFloat(document.getElementById('depositAmount').value) || 0;
+  document.getElementById('checkoutBalance').textContent = 'RM ' + Math.max(0, t - dep).toLocaleString(undefined,{minimumFractionDigits:2});
+}
+
 async function processCheckout(e) {
   e.preventDefault();
   const btn = document.getElementById('processBtn');
-  btn.disabled = true;
-  btn.textContent = 'Memproses...';
-
-  const total = cart.reduce((s, c) => { const p = products.find(x => x.id === c.id); return s + (p.price * c.qty); }, 0);
-  const payType = document.getElementById('paymentType').value;
-  const deposit = payType === 'deposit' ? (parseFloat(document.getElementById('depositAmount').value) || 0) : total;
-  const balance = total - deposit;
-  const invNo = 'HMF-' + String(Date.now()).slice(-6) + '-' + String(invoiceCounter).padStart(3,'0');
-
-  const items = cart.map(c => { const p = products.find(x => x.id === c.id); return { id: p.id, name: p.name, qty: c.qty, price: p.price, subtotal: p.price * c.qty }; });
+  btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Memproses...';
+  
+  const total = cart.reduce((s,x)=>{ const p=products.find(i=>i.id===x.id); return s+(p.price*x.qty);},0);
+  const type = document.getElementById('paymentType').value;
+  const dep = type === 'deposit' ? (parseFloat(document.getElementById('depositAmount').value)||0) : total;
+  const bal = total - dep;
+  // Generate random order number
+  const invNo = 'HMF-' + Math.floor(100000 + Math.random() * 900000);
+  
+  const items = cart.map(x => {
+    const p = products.find(i=>i.id===x.id);
+    return { id: p.id, name: p.name, qty: x.qty, price: p.price, subtotal: p.price*x.qty };
+  });
 
   const order = {
-    type: 'order',
+    type: 'order', invoice_number: invNo,
     buyer_name: document.getElementById('buyerName').value,
     buyer_phone: document.getElementById('buyerPhone').value,
     buyer_address: document.getElementById('buyerAddress').value,
     delivery_date: document.getElementById('deliveryDate').value,
     notes: document.getElementById('buyerNotes').value,
-    items: items,
-    total_amount: total,
-    payment_type: payType,
-    deposit_amount: deposit,
-    balance: balance,
-    status: payType === 'full' ? 'paid' : 'deposit',
-    invoice_number: invNo,
-    created_at: new Date().toISOString(),
-    created_by: currentUser.username
+    items: items, total_amount: total, payment_type: type, deposit_amount: dep, balance: bal,
+    status: type==='full'?'paid':'deposit',
+    created_at: new Date().toISOString(), created_by: currentUser.username
   };
 
-  try {
-    // Save Order
-    await db.collection("orders").add(order);
-    
-    // Tolak Stok dari Firebase
-    const batch = db.batch();
-    items.forEach(item => {
-      const pRef = db.collection("products").doc(item.id);
-      const currentStock = products.find(p => p.id === item.id).stock;
-      batch.update(pRef, { stock: Math.max(0, currentStock - item.qty) });
-    });
-    await batch.commit();
-
-    btn.disabled = false;
-    btn.textContent = 'Proses Pembayaran';
-    
-    showInvoice(order, items);
-    cart = [];
-    document.getElementById('checkoutForm').reset();
-    showToast('Transaksi berjaya disimpan di Firebase!', 'success');
-  } catch (error) {
-    btn.disabled = false;
-    btn.textContent = 'Proses Pembayaran';
-    showToast('Gagal menyimpan: ' + error.message, 'error');
+  if(isDemoMode) {
+    // Demo Mode Save
+    allOrders.unshift(order);
+    items.forEach(i => { const p = products.find(x=>x.id===i.id); p.stock -= i.qty; });
+    finishCheckout(order, items, btn);
+  } else {
+    // Firebase Save
+    try {
+      await db.collection("orders").add(order);
+      const batch = db.batch();
+      items.forEach(i => {
+        const ref = db.collection("products").doc(i.id);
+        const currStock = products.find(x=>x.id===i.id).stock;
+        batch.update(ref, { stock: Math.max(0, currStock - i.qty) });
+      });
+      await batch.commit();
+      finishCheckout(order, items, btn);
+    } catch(err) {
+      showToast('Error: '+err.message, 'error');
+      btn.disabled = false; btn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i> Sahkan Tempahan';
+    }
   }
 }
 
-// Pendaftaran Service Worker untuk PWA
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('Service Worker didaftarkan!', reg))
-      .catch(err => console.error('Service Worker gagal:', err));
-  });
+function finishCheckout(order, items, btn) {
+  btn.disabled = false; btn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i> Sahkan Tempahan';
+  showToast('Pembayaran Berjaya Disimpan!', 'success');
+  cart = []; document.getElementById('checkoutForm').reset();
+  showInvoice(order, items);
 }
 
-// ... COPY PASTE BAKI FUNCTION NAVIGATE, RENDER, INVOICE, DAN LAIN-LAIN DARI KOD ASAL ANDA DI SINI ...
+// ==========================================
+// 7. INVOICE GENERATION (DENGAN QR CODE)
+// ==========================================
+let qrCodeObj = null;
+function showInvoice(order, items) {
+  document.getElementById('invNoDisplay').textContent = order.invoice_number;
+  document.getElementById('invDateDisplay').textContent = new Date(order.created_at).toLocaleDateString('ms-MY');
+  document.getElementById('invName').textContent = order.buyer_name;
+  document.getElementById('invPhone').textContent = order.buyer_phone;
+  document.getElementById('invAddress').textContent = order.buyer_address + (order.delivery_date ? ` (Hantar: ${order.delivery_date})` : '');
+  
+  document.getElementById('invItemsBody').innerHTML = items.map(i => `
+    <tr class="border-b border-gray-100 text-sm">
+      <td class="py-3 font-medium text-gray-800">${i.name}</td>
+      <td class="text-center py-3">x${i.qty}</td>
+      <td class="text-right py-3 font-bold text-gray-900">RM ${i.subtotal.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+    </tr>`).join('');
+    
+  document.getElementById('invTotal').textContent = 'RM ' + order.total_amount.toLocaleString(undefined,{minimumFractionDigits:2});
+  
+  const depArea = document.getElementById('invDepositArea');
+  if(order.payment_type === 'deposit') {
+    depArea.classList.remove('hidden');
+    document.getElementById('invDeposit').textContent = 'RM ' + order.deposit_amount.toLocaleString(undefined,{minimumFractionDigits:2});
+    document.getElementById('invBalance').textContent = 'RM ' + order.balance.toLocaleString(undefined,{minimumFractionDigits:2});
+  } else {
+    depArea.classList.add('hidden');
+  }
 
-  </script>
- </body>
+  const badge = document.getElementById('invStatusBadge');
+  if(order.status === 'paid') {
+    badge.textContent = 'SELESAI BAYAR';
+    badge.className = 'px-4 py-1.5 rounded-full text-xs font-bold border bg-green-50 text-green-700 border-green-200';
+  } else {
+    badge.textContent = 'DEPOSIT / BERBAKI';
+    badge.className = 'px-4 py-1.5 rounded-full text-xs font-bold border bg-amber-50 text-amber-700 border-amber-200';
+  }
+
+  // Generate QR Code
+  const qrContainer = document.getElementById("qrcode");
+  qrContainer.innerHTML = ""; // Clear old QR
+  new QRCode(qrContainer, {
+    text: "Resit: " + order.invoice_number + "\nNama: " + order.buyer_name + "\nJumlah: RM " + order.total_amount,
+    width: 80, height: 80, colorDark : "#0f2418", colorLight : "#ffffff"
+  });
+
+  navigateTo('invoice');
+}
+
+// ==========================================
+// 8. RENDERER (DASHBOARD, HISTORY, ETC)
+// ==========================================
+function updateDashboardStats() {
+  const today = new Date().toDateString();
+  const tSales = allOrders.filter(o => new Date(o.created_at).toDateString()===today).reduce((s,o)=>s+(o.total_amount||0),0);
+  const pending = allOrders.filter(o => o.status === 'deposit').length;
+  const custs = new Set(allOrders.map(o => o.buyer_name)).size;
+  
+  document.getElementById('statTodaySales').textContent = 'RM '+tSales.toLocaleString();
+  document.getElementById('statTotalTx').textContent = allOrders.length;
+  document.getElementById('statPending').textContent = pending;
+  document.getElementById('statCustomers').textContent = custs;
+}
+
+function renderRecentTransactions() {
+  const c = document.getElementById('recentTransactions');
+  const arr = allOrders.slice(0,5);
+  if(arr.length===0){ c.innerHTML='<p class="text-gray-400 text-sm text-center py-6">Tiada rekod</p>'; return; }
+  c.innerHTML = arr.map(o => `
+    <div class="flex justify-between items-center p-3 hover:bg-gray-50 rounded-xl transition cursor-pointer" onclick="viewOldInvoice('${o.id}')">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><i data-lucide="file-text" class="w-4 h-4"></i></div>
+        <div><p class="font-bold text-sm text-gray-800">${o.buyer_name}</p><p class="text-xs text-gray-400">${new Date(o.created_at).toLocaleDateString('ms-MY')}</p></div>
+      </div>
+      <div class="text-right">
+        <p class="font-bold text-sm text-farm-700">RM ${o.total_amount.toLocaleString()}</p>
+        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${o.status==='paid'?'bg-green-100 text-green-700':'bg-amber-100 text-amber-700'}">${o.status}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderStockOverview() {
+  const c = document.getElementById('stockOverview');
+  c.innerHTML = products.map(p => `
+    <div class="flex justify-between items-center p-3 border-b border-gray-50">
+      <div class="flex items-center gap-3">
+        <img src="${p.image||'https://via.placeholder.com/50'}" class="w-8 h-8 rounded-lg object-cover">
+        <span class="font-semibold text-sm text-gray-700">${p.name}</span>
+      </div>
+      <span class="px-3 py-1 rounded-full text-xs font-bold ${p.stock<5?'bg-red-100 text-red-700':'bg-green-100 text-green-700'}">${p.stock} Unit</span>
+    </div>
+  `).join('');
+}
+
+function renderProductsGrid() {
+  const c = document.getElementById('productsList');
+  c.innerHTML = products.map(p => `
+    <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center gap-4 ${!p.active?'opacity-50 grayscale':''}">
+      <img src="${p.image||'https://via.placeholder.com/80'}" class="w-16 h-16 rounded-xl object-cover shadow-sm">
+      <div>
+        <h4 class="font-bold text-gray-900">${p.name}</h4>
+        <p class="text-sm font-bold text-farm-600">RM ${p.price.toLocaleString()}</p>
+        <p class="text-xs text-gray-500 mt-1">Sedia Ada: <span class="font-bold text-gray-800">${p.stock}</span></p>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderHistory() {
+  const s = (document.getElementById('historySearch')?.value||'').toLowerCase();
+  const f = document.getElementById('historyFilter')?.value||'all';
+  let arr = allOrders;
+  if(s) arr = arr.filter(o => o.buyer_name.toLowerCase().includes(s) || o.invoice_number.toLowerCase().includes(s));
+  if(f!=='all') arr = arr.filter(o => o.status === f);
+  
+  const c = document.getElementById('historyListTable');
+  if(arr.length===0){ c.innerHTML='<tr><td colspan="5" class="text-center py-8 text-gray-400">Tiada rekod dijumpai</td></tr>'; return; }
+  c.innerHTML = arr.map(o => `
+    <tr class="hover:bg-gray-50 transition border-b border-gray-50">
+      <td class="p-4">
+        <p class="font-bold text-sm text-gray-800">${o.invoice_number}</p>
+        <p class="text-xs text-gray-500">${new Date(o.created_at).toLocaleDateString('ms-MY')}</p>
+      </td>
+      <td class="p-4 font-medium text-sm text-gray-700">${o.buyer_name}</td>
+      <td class="p-4 font-bold text-farm-700">RM ${o.total_amount.toLocaleString()}</td>
+      <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${o.status==='paid'?'bg-green-100 text-green-700':'bg-amber-100 text-amber-700'}">${o.status==='paid'?'Selesai':'Deposit'}</span></td>
+      <td class="p-4 text-right"><button onclick="viewOldInvoice('${o.id}')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold transition">Lihat Resit</button></td>
+    </tr>
+  `).join('');
+}
+
+function viewOldInvoice(orderId) {
+  const o = allOrders.find(x => x.id === orderId);
+  if(o) showInvoice(o, o.items || []);
+}
+
+function renderCustomers() {
+  const map = {};
+  allOrders.forEach(o => { if(!map[o.buyer_name]) map[o.buyer_name]={n:o.buyer_name, p:o.buyer_phone, t:0, c:0}; map[o.buyer_name].c++; map[o.buyer_name].t+=o.total_amount; });
+  const arr = Object.values(map);
+  const c = document.getElementById('customersList');
+  if(arr.length===0){ c.innerHTML='<p class="col-span-3 text-center py-8 text-gray-400">Belum ada pelanggan</p>'; return; }
+  c.innerHTML = arr.map(x => `
+    <div class="bg-gray-50 rounded-xl p-5 border border-gray-100 flex flex-col items-center text-center">
+      <div class="w-12 h-12 bg-farm-100 rounded-full flex items-center justify-center text-farm-700 font-bold text-lg mb-3">${x.n.charAt(0).toUpperCase()}</div>
+      <h4 class="font-bold text-gray-900">${x.n}</h4>
+      <p class="text-xs text-gray-500 mb-3">${x.p}</p>
+      <div class="w-full bg-white rounded-lg p-2 flex justify-between text-xs">
+        <div><span class="block text-gray-400">Kerap Beli</span><span class="font-bold text-gray-800">${x.c} kali</span></div>
+        <div class="text-right"><span class="block text-gray-400">Total RM</span><span class="font-bold text-farm-600">${x.t.toLocaleString()}</span></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderDelivery() {
+  const arr = allOrders.filter(o => o.delivery_date).sort((a,b)=>new Date(a.delivery_date)-new Date(b.delivery_date));
+  const c = document.getElementById('deliveryList');
+  if(arr.length===0){ c.innerHTML='<p class="text-center py-8 text-gray-400">Tiada penghantaran dijadualkan</p>'; return; }
+  c.innerHTML = arr.map(o => `
+    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center flex-col">
+          <span class="text-[10px] font-bold uppercase">${new Date(o.delivery_date).toLocaleString('ms-MY',{month:'short'})}</span>
+          <span class="text-lg font-black leading-none">${new Date(o.delivery_date).getDate()}</span>
+        </div>
+        <div>
+          <h4 class="font-bold text-gray-900 text-sm">${o.buyer_name}</h4>
+          <p class="text-xs text-gray-500 max-w-xs truncate">${o.buyer_address}</p>
+        </div>
+      </div>
+      <div class="text-right">
+        <p class="text-xs font-bold text-gray-400 mb-1">Inv: ${o.invoice_number}</p>
+        <button onclick="viewOldInvoice('${o.id}')" class="text-xs font-bold text-farm-600 hover:underline">Lihat Detail</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ==========================================
+// 9. ADMIN SETTINGS (CRUD)
+// ==========================================
+function renderSettingsTable() {
+  const c = document.getElementById('settingsProductsTable');
+  c.innerHTML = products.map((p, i) => `
+    <tr class="hover:bg-gray-50 transition border-b border-gray-50">
+      <td class="p-4 flex items-center gap-3">
+        <img src="${p.image||'https://via.placeholder.com/40'}" class="w-10 h-10 rounded-lg object-cover">
+        <div><p class="font-bold text-sm text-gray-800">${p.name}</p><p class="text-[10px] text-gray-400">${p.desc}</p></div>
+      </td>
+      <td class="p-4 font-bold text-gray-700">RM ${p.price.toLocaleString()}</td>
+      <td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100">${p.stock}</span></td>
+      <td class="p-4">
+        <button onclick="toggleActive('${p.id}', ${!p.active})" class="px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold ${p.active?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}">${p.active?'Aktif':'Disembunyikan'}</button>
+      </td>
+      <td class="p-4 text-right space-x-1">
+        <button onclick="editProduct('${p.id}')" class="w-8 h-8 inline-flex items-center justify-center bg-blue-50 text-blue-600 rounded hover:bg-blue-100"><i data-lucide="edit" class="w-4 h-4"></i></button>
+        <button onclick="deleteProduct('${p.id}')" class="w-8 h-8 inline-flex items-center justify-center bg-red-50 text-red-600 rounded hover:bg-red-100"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+      </td>
+    </tr>
+  `).join('');
+  lucide.createIcons();
+}
+
+function showAddProduct() {
+  document.getElementById('productForm').reset();
+  document.getElementById('editProductId').value = '';
+  document.getElementById('modalTitle').textContent = 'Tambah Produk Baru';
+  document.getElementById('productModal').classList.remove('hidden');
+}
+
+function editProduct(id) {
+  const p = products.find(x => x.id === id);
+  document.getElementById('editProductId').value = p.id;
+  document.getElementById('prodName').value = p.name;
+  document.getElementById('prodPrice').value = p.price;
+  document.getElementById('prodStock').value = p.stock;
+  document.getElementById('prodDesc').value = p.desc;
+  document.getElementById('prodImage').value = p.image || '';
+  document.getElementById('modalTitle').textContent = 'Edit Produk';
+  document.getElementById('productModal').classList.remove('hidden');
+}
+
+function closeProductModal() { document.getElementById('productModal').classList.add('hidden'); }
+
+async function saveProduct(e) {
+  e.preventDefault();
+  const id = document.getElementById('editProductId').value;
+  const data = {
+    name: document.getElementById('prodName').value,
+    price: parseFloat(document.getElementById('prodPrice').value)||0,
+    stock: parseInt(document.getElementById('prodStock').value)||0,
+    desc: document.getElementById('prodDesc').value,
+    image: document.getElementById('prodImage').value,
+    active: true
+  };
+
+  if(isDemoMode) {
+    if(id) { const idx = products.findIndex(x=>x.id===id); products[idx]={...products[idx], ...data}; }
+    else { data.id = 'p'+Date.now(); products.push(data); }
+    showToast('Telah disave (Demo Mode)', 'success');
+    closeProductModal(); renderAllViews();
+  } else {
+    try {
+      if(id) await db.collection("products").doc(id).update(data);
+      else await db.collection("products").add(data);
+      showToast('Disimpan di Firebase', 'success');
+      closeProductModal();
+    } catch(err) { showToast('Ralat: '+err.message, 'error'); }
+  }
+}
+
+async function toggleActive(id, newStatus) {
+  if(isDemoMode) { products.find(x=>x.id===id).active = newStatus; renderAllViews(); return; }
+  await db.collection("products").doc(id).update({ active: newStatus });
+}
+async function deleteProduct(id) {
+  if(!confirm("Anda pasti mahu buang produk ini?")) return;
+  if(isDemoMode) { products = products.filter(x=>x.id!==id); renderAllViews(); return; }
+  await db.collection("products").doc(id).delete();
+}
+
+// ==========================================
+// 10. UTILS
+// ==========================================
+function showToast(msg, type='success') {
+  const t = document.createElement('div');
+  t.className = `toast px-5 py-3 rounded-xl shadow-xl text-sm font-bold flex items-center gap-3 border ${type==='success'?'bg-white text-green-700 border-green-200':'bg-white text-red-700 border-red-200'}`;
+  t.innerHTML = `<i data-lucide="${type==='success'?'check-circle':'alert-triangle'}" class="w-5 h-5"></i> ${msg}`;
+  document.getElementById('toastContainer').appendChild(t);
+  lucide.createIcons();
+  setTimeout(()=>t.remove(), 3000);
+}
+
+document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ms-MY', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+lucide.createIcons();
+document.getElementById('loginPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') handleManualLogin(); });
+</script>
+</body>
 </html>
