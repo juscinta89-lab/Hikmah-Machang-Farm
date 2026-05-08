@@ -16,10 +16,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK (Ditambah Storage) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
   <script>
     tailwind.config = {
@@ -162,7 +163,6 @@
       
       <!-- 1. DASHBOARD -->
       <div id="page-dashboard" class="page fade-in">
-       <!-- Stats Grid -->
        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
         <div class="bg-white rounded-2xl p-6 border border-gray-100 card-hover shadow-sm">
          <div class="flex justify-between items-start mb-4">
@@ -205,7 +205,6 @@
       <!-- 2. POS JUALAN -->
       <div id="page-pos" class="page hidden fade-in">
        <div class="flex flex-col lg:flex-row gap-6">
-        <!-- Products Grid -->
         <div class="flex-1">
          <div class="mb-6 relative">
           <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
@@ -213,7 +212,6 @@
          </div>
          <div id="posProducts" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5"></div>
         </div>
-        <!-- Cart Sidebar -->
         <div class="w-full lg:w-[350px] bg-white rounded-3xl border border-gray-200 p-6 h-fit lg:sticky lg:top-24 shadow-sm flex flex-col max-h-[80vh]">
          <h3 class="font-bold text-farm-900 text-lg mb-4 flex items-center gap-2"><i data-lucide="shopping-cart" class="w-5 h-5 text-farm-600"></i> Troli Pembelian</h3>
          <div id="cartItems" class="flex-1 overflow-y-auto space-y-3 mb-6 pr-2 min-h-[200px]">
@@ -244,16 +242,16 @@
          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
            <label class="text-sm font-semibold text-gray-700 block mb-2">Nama Pembeli <span class="text-red-500">*</span></label> 
-           <input id="buyerName" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 focus:ring-1 focus:ring-farm-500 bg-gray-50 focus:bg-white transition" placeholder="Cth: Ahmad Albab">
+           <input id="buyerName" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 bg-gray-50 focus:bg-white transition" placeholder="Cth: Ahmad Albab">
           </div>
           <div>
            <label class="text-sm font-semibold text-gray-700 block mb-2">No. Telefon <span class="text-red-500">*</span></label> 
-           <input id="buyerPhone" type="tel" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 focus:ring-1 focus:ring-farm-500 bg-gray-50 focus:bg-white transition" placeholder="01X-XXXXXXX">
+           <input id="buyerPhone" type="tel" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 bg-gray-50 focus:bg-white transition" placeholder="01X-XXXXXXX">
           </div>
          </div>
          <div>
           <label class="text-sm font-semibold text-gray-700 block mb-2">Alamat Lengkap <span class="text-red-500">*</span></label> 
-          <textarea id="buyerAddress" required rows="3" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 focus:ring-1 focus:ring-farm-500 bg-gray-50 focus:bg-white transition" placeholder="Alamat penghantaran..."></textarea>
+          <textarea id="buyerAddress" required rows="3" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 bg-gray-50 focus:bg-white transition" placeholder="Alamat penghantaran..."></textarea>
          </div>
          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -277,7 +275,6 @@
           <textarea id="buyerNotes" rows="2" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 bg-gray-50 transition" placeholder="Pesanan tambahan..."></textarea>
          </div>
          
-         <!-- Ringkasan Bayaran -->
          <div class="bg-farm-900 text-white rounded-2xl p-6 space-y-3 shadow-lg">
           <div class="flex justify-between items-center"><span class="text-farm-200 font-medium">Jumlah Keseluruhan:</span><span id="checkoutTotal" class="text-2xl font-bold text-gold-400">RM 0.00</span></div>
           <div id="balanceRow" class="flex justify-between items-center hidden pt-3 border-t border-white/10"><span class="text-farm-200 font-medium">Baki Perlu Dibayar:</span><span id="checkoutBalance" class="text-xl font-bold text-red-400">RM 0.00</span></div>
@@ -293,7 +290,6 @@
       <!-- 4. INVOICE / RESIT PAGE -->
       <div id="page-invoice" class="page hidden fade-in">
        <div id="printArea" class="max-w-2xl mx-auto bg-white rounded-2xl border border-gray-200 p-8 md:p-12 shadow-sm relative">
-        <!-- Logo & Header -->
         <div class="text-center mb-8 border-b border-dashed border-gray-300 pb-6">
          <img src="https://cdn-icons-png.flaticon.com/512/3210/3210064.png" class="w-16 h-16 mx-auto mb-3 opacity-90">
          <h2 class="font-display text-2xl font-bold text-gray-900">Hikmah Machang Farm</h2>
@@ -311,7 +307,6 @@
          </div>
         </div>
 
-        <!-- Maklumat Pembeli -->
         <div class="mb-8 p-4 bg-gray-50 rounded-xl border border-gray-100">
          <p class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">Terima Kasih Kepada:</p>
          <p class="font-bold text-gray-800 text-lg" id="invName">Nama</p>
@@ -319,7 +314,6 @@
          <p class="text-gray-600 mt-1 flex items-start gap-2"><i data-lucide="map-pin" class="w-3 h-3 mt-1"></i> <span id="invAddress">Alamat</span></p>
         </div>
 
-        <!-- Table Item -->
         <table class="w-full text-sm mb-6">
          <thead>
            <tr class="border-b-2 border-gray-800 text-gray-800">
@@ -331,7 +325,6 @@
          <tbody id="invItemsBody" class="text-gray-600"></tbody>
         </table>
 
-        <!-- Total Area -->
         <div class="border-t-2 border-gray-800 pt-4 space-y-2">
          <div class="flex justify-between items-center">
            <span class="font-bold text-gray-800 uppercase text-sm">Jumlah Besar</span>
@@ -349,13 +342,11 @@
          </div>
         </div>
 
-        <!-- Status & QR Code -->
         <div class="mt-8 flex justify-between items-end border-t border-dashed border-gray-300 pt-6">
           <div>
             <p class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">Status Bayaran</p>
             <span id="invStatusBadge" class="px-4 py-1.5 rounded-full text-sm font-bold border">Status</span>
           </div>
-          <!-- Tempat QR Code Generate -->
           <div id="qrcode" class="p-1 bg-white border border-gray-200 rounded-lg"></div>
         </div>
         
@@ -365,7 +356,6 @@
         </div>
        </div>
 
-       <!-- Action Buttons -->
        <div class="max-w-2xl mx-auto mt-6 flex flex-col sm:flex-row gap-4 no-print">
         <button onclick="window.print()" class="flex-1 py-4 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-900 transition flex items-center justify-center gap-2 shadow-md"> <i data-lucide="printer" class="w-5 h-5"></i> Print Resit </button> 
         <button onclick="navigateTo('pos')" class="flex-1 py-4 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition flex items-center justify-center gap-2"> <i data-lucide="shopping-bag" class="w-5 h-5"></i> Buat Jualan Baru </button>
@@ -455,7 +445,7 @@
         </div>
        </div>
 
-       <!-- MODAL TAMBAH/EDIT PRODUK -->
+       <!-- MODAL TAMBAH/EDIT PRODUK (Dinaiktaraf dengan File Upload) -->
        <div id="productModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl transform transition-all">
          <div class="flex justify-between items-center mb-6">
@@ -486,15 +476,28 @@
            <input id="prodDesc" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:border-farm-500 transition" placeholder="Cth: Berat 250kg-300kg">
           </div>
 
+          <!-- BAHAGIAN UPLOAD GAMBAR BARU -->
           <div>
-           <label class="text-sm font-semibold text-gray-700 block mb-1">URL Gambar (Placeholder)</label> 
-           <input id="prodImage" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:border-farm-500 transition" placeholder="Cth: https://gambar-lembu.jpg">
-           <p class="text-xs text-gray-400 mt-1">Boleh guna link gambar. Jika kosong, gambar default akan digunakan.</p>
+           <label class="text-sm font-semibold text-gray-700 block mb-2">Gambar Produk</label> 
+           <div class="flex items-center gap-4">
+             <div id="imagePreviewContainer" class="w-24 h-24 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
+               <img id="imagePreview" src="" class="w-full h-full object-cover hidden">
+               <i id="imagePlaceholderIcon" data-lucide="image" class="w-8 h-8 text-gray-300"></i>
+             </div>
+             <div class="flex-1">
+               <input type="file" id="prodImageFile" accept="image/*" class="hidden" onchange="previewImage(event)">
+               <label for="prodImageFile" class="cursor-pointer px-4 py-2.5 bg-farm-50 border border-farm-200 rounded-xl text-sm font-bold text-farm-700 hover:bg-farm-100 transition inline-flex items-center">
+                 <i data-lucide="upload" class="w-4 h-4 mr-2"></i> Pilih Fail Gambar
+               </label>
+               <p class="text-xs text-gray-400 mt-2">Format disokong: JPG, PNG, WEBP.</p>
+             </div>
+           </div>
+           <input type="hidden" id="prodImageExisting">
           </div>
 
           <div class="flex gap-3 pt-4 mt-2 border-t border-gray-100">
            <button type="button" onclick="closeProductModal()" class="flex-1 py-3 border-2 border-gray-200 rounded-xl text-gray-600 font-bold hover:bg-gray-50 transition">Batal</button> 
-           <button type="submit" class="flex-1 py-3 bg-farm-600 text-white rounded-xl font-bold hover:bg-farm-700 shadow-md transition">Simpan Data</button>
+           <button type="submit" id="saveProductBtn" class="flex-1 py-3 bg-farm-600 text-white rounded-xl font-bold hover:bg-farm-700 shadow-md transition flex items-center justify-center gap-2">Simpan Data</button>
           </div>
          </form>
         </div>
@@ -506,15 +509,12 @@
    </div>
   </div>
 
-  <!-- Toast Notifikasi -->
   <div id="toastContainer" class="fixed top-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none"></div>
 
 <script>
 // =====================================================================
 // 1. KONFIGURASI PANGKALAN DATA (FIREBASE + LOCAL DEMO FALLBACK)
 // =====================================================================
-// PENTING: Masukkan kod Firebase anda di sini nanti.
-// Jika dibiarkan "YOUR_API_KEY", sistem automatik bertukar jadi DEMO MODE.
 const firebaseConfig = {
   apiKey: "AIzaSyD60OE4KtSgZJktgYfIulrmHozELemXqQw",
   authDomain: "hikmah-pos-6290f.firebaseapp.com",
@@ -524,8 +524,6 @@ const firebaseConfig = {
   appId: "1:964156564208:web:90dfdcb2989b7d1cd61835",
   measurementId: "G-PF566F81Q7"
 };
-
-// Data Asas (Demo Mode / Fallback) jika Firebase tiada
 const defaultData = [
   { id: 'p1', name: 'Lembu Grade A', desc: 'Sado (250-300kg)', price: 8500, stock: 12, active: true, image: 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=500&q=80' },
   { id: 'p2', name: 'Lembu Grade B', desc: 'Biasa (200-250kg)', price: 6500, stock: 8, active: true, image: 'https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?w=500&q=80' },
@@ -533,37 +531,34 @@ const defaultData = [
   { id: 'p4', name: 'Biri-Biri', desc: 'Biri-biri pedaging', price: 850, stock: 15, active: true, image: 'https://images.unsplash.com/photo-1484557985045-edf25e08da73?w=500&q=80' }
 ];
 
-// Variables System
 let currentUser = null;
 let currentPage = 'dashboard';
 let cart = [];
 let products = [];
 let allOrders = [];
 let isDemoMode = false;
-let db = null, auth = null, googleProvider = null;
+let db = null, auth = null, googleProvider = null, storage = null;
 
-// Initialize System
 function initSystem() {
   if(firebaseConfig.apiKey === "YOUR_API_KEY" || firebaseConfig.apiKey === "") {
-    console.warn("DEMO MODE AKTIF: Konfigurasi Firebase tiada. Sistem menggunakan Local Data.");
+    console.warn("DEMO MODE AKTIF: Menggunakan Local Data.");
     isDemoMode = true;
-    products = [...defaultData]; // Muat data mock
+    products = [...defaultData];
     renderAllViews();
   } else {
     try {
       firebase.initializeApp(firebaseConfig);
       db = firebase.firestore();
       auth = firebase.auth();
+      storage = firebase.storage();
       googleProvider = new firebase.auth.GoogleAuthProvider();
-      console.log("Firebase Disambung Berjaya.");
     } catch (e) {
-      console.error("Gagal sambung Firebase, fallback ke Demo.", e);
       isDemoMode = true;
       products = [...defaultData];
     }
   }
 }
-initSystem(); // Run immediately
+initSystem();
 
 // ==========================================
 // 2. LOG MASUK (AUTHENTICATION)
@@ -571,7 +566,6 @@ initSystem(); // Run immediately
 function handleManualLogin() {
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value;
-  
   if (u === 'admin' && p === 'admin2026') {
     currentUser = { username: 'Admin Farm', role: 'Admin', photo: 'https://ui-avatars.com/api/?name=Ad&background=d4a843&color=fff' };
     completeLogin();
@@ -586,11 +580,9 @@ function handleManualLogin() {
 function handleGoogleLogin() {
   if(isDemoMode) {
     currentUser = { username: 'Google Staff', role: 'Staff', photo: 'https://ui-avatars.com/api/?name=GS&background=4285F4&color=fff' };
-    showToast('Log Masuk Mock Google Berjaya', 'success');
     completeLogin();
     return;
   }
-  
   auth.signInWithPopup(googleProvider).then((result) => {
     currentUser = { username: result.user.displayName, email: result.user.email, role: 'Staff', photo: result.user.photoURL };
     completeLogin();
@@ -605,17 +597,12 @@ function showError(msg) {
 function completeLogin() {
   document.getElementById('loginPage').classList.add('hidden');
   document.getElementById('mainApp').classList.remove('hidden');
-  
   document.getElementById('currentUserRole').textContent = currentUser.role;
   document.getElementById('currentUserNameDisplay').textContent = currentUser.username;
   document.getElementById('userAvatar').src = currentUser.photo;
-  
   document.getElementById('settingsBtn').style.display = (currentUser.role === 'Admin') ? 'flex' : 'none';
-  
   if(!isDemoMode) initFirebaseListeners();
-  
   navigateTo('dashboard');
-  showToast(`Selamat datang, ${currentUser.username}!`, 'success');
 }
 
 function handleLogout() {
@@ -635,7 +622,6 @@ function resetLog() {
 // 3. LISTENERS DATA & RENDERER
 // ==========================================
 function initFirebaseListeners() {
-  // Listen Products
   db.collection("products").onSnapshot((snap) => {
     products = [];
     snap.forEach((doc) => products.push({ id: doc.id, ...doc.data() }));
@@ -643,7 +629,6 @@ function initFirebaseListeners() {
     renderAllViews();
   });
   
-  // Listen Orders
   db.collection("orders").orderBy("created_at", "desc").onSnapshot((snap) => {
     allOrders = [];
     snap.forEach((doc) => allOrders.push({ id: doc.id, ...doc.data() }));
@@ -651,9 +636,7 @@ function initFirebaseListeners() {
   });
 }
 
-function seedFirebaseDefault() {
-  defaultData.forEach(p => db.collection("products").add(p));
-}
+function seedFirebaseDefault() { defaultData.forEach(p => db.collection("products").add(p)); }
 
 function renderAllViews() {
   updateDashboardStats();
@@ -674,17 +657,13 @@ function navigateTo(page) {
   currentPage = page;
   document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
   document.getElementById('page-' + page).classList.remove('hidden');
-  
   document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active', 'bg-white/10', 'border-l-4', 'border-gold-400'));
   const btn = document.querySelector(`.sidebar-item[data-page="${page}"]`);
-  if(btn) { btn.classList.add('active', 'bg-white/10', 'border-l-4', 'border-gold-400'); }
+  if(btn) btn.classList.add('active', 'bg-white/10', 'border-l-4', 'border-gold-400');
 
   const titles = { dashboard:'Dashboard', pos:'Sistem POS Jualan', products:'Katalog Produk', history:'Rekod Pembelian', customers:'Senarai Pelanggan', delivery:'Jadual Penghantaran', settings:'Admin Settings', checkout:'Checkout', invoice:'Resit Pembelian' };
   document.getElementById('pageTitle').textContent = titles[page];
-  
   renderAllViews();
-  
-  // Tutup sidebar di mobile
   document.getElementById('sidebar').classList.add('-translate-x-full');
   document.getElementById('sidebar').classList.remove('translate-x-0');
 }
@@ -694,7 +673,7 @@ function toggleSidebar() {
 }
 
 // ==========================================
-// 5. POS JUALAN LOGIC (GAMBAR HAIWAN)
+// 5. POS JUALAN LOGIC
 // ==========================================
 function renderPOSProducts() {
   const search = (document.getElementById('posSearch')?.value || '').toLowerCase();
@@ -801,12 +780,12 @@ async function processCheckout(e) {
   e.preventDefault();
   const btn = document.getElementById('processBtn');
   btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Memproses...';
+  lucide.createIcons();
   
   const total = cart.reduce((s,x)=>{ const p=products.find(i=>i.id===x.id); return s+(p.price*x.qty);},0);
   const type = document.getElementById('paymentType').value;
   const dep = type === 'deposit' ? (parseFloat(document.getElementById('depositAmount').value)||0) : total;
   const bal = total - dep;
-  // Generate random order number
   const invNo = 'HMF-' + Math.floor(100000 + Math.random() * 900000);
   
   const items = cart.map(x => {
@@ -827,12 +806,10 @@ async function processCheckout(e) {
   };
 
   if(isDemoMode) {
-    // Demo Mode Save
     allOrders.unshift(order);
     items.forEach(i => { const p = products.find(x=>x.id===i.id); p.stock -= i.qty; });
     finishCheckout(order, items, btn);
   } else {
-    // Firebase Save
     try {
       await db.collection("orders").add(order);
       const batch = db.batch();
@@ -846,6 +823,7 @@ async function processCheckout(e) {
     } catch(err) {
       showToast('Error: '+err.message, 'error');
       btn.disabled = false; btn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i> Sahkan Tempahan';
+      lucide.createIcons();
     }
   }
 }
@@ -858,9 +836,8 @@ function finishCheckout(order, items, btn) {
 }
 
 // ==========================================
-// 7. INVOICE GENERATION (DENGAN QR CODE)
+// 7. INVOICE GENERATION
 // ==========================================
-let qrCodeObj = null;
 function showInvoice(order, items) {
   document.getElementById('invNoDisplay').textContent = order.invoice_number;
   document.getElementById('invDateDisplay').textContent = new Date(order.created_at).toLocaleDateString('ms-MY');
@@ -895,9 +872,8 @@ function showInvoice(order, items) {
     badge.className = 'px-4 py-1.5 rounded-full text-xs font-bold border bg-amber-50 text-amber-700 border-amber-200';
   }
 
-  // Generate QR Code
   const qrContainer = document.getElementById("qrcode");
-  qrContainer.innerHTML = ""; // Clear old QR
+  qrContainer.innerHTML = "";
   new QRCode(qrContainer, {
     text: "Resit: " + order.invoice_number + "\nNama: " + order.buyer_name + "\nJumlah: RM " + order.total_amount,
     width: 80, height: 80, colorDark : "#0f2418", colorLight : "#ffffff"
@@ -1038,7 +1014,7 @@ function renderDelivery() {
 }
 
 // ==========================================
-// 9. ADMIN SETTINGS (CRUD)
+// 9. ADMIN SETTINGS (CRUD + GAMBAR UPLOAD)
 // ==========================================
 function renderSettingsTable() {
   const c = document.getElementById('settingsProductsTable');
@@ -1062,9 +1038,27 @@ function renderSettingsTable() {
   lucide.createIcons();
 }
 
+function previewImage(event) {
+  const file = event.target.files[0];
+  if(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('imagePreview').src = e.target.result;
+      document.getElementById('imagePreview').classList.remove('hidden');
+      document.getElementById('imagePlaceholderIcon').classList.add('hidden');
+    }
+    reader.readAsDataURL(file);
+  }
+}
+
 function showAddProduct() {
   document.getElementById('productForm').reset();
   document.getElementById('editProductId').value = '';
+  document.getElementById('prodImageExisting').value = '';
+  document.getElementById('imagePreview').src = '';
+  document.getElementById('imagePreview').classList.add('hidden');
+  document.getElementById('imagePlaceholderIcon').classList.remove('hidden');
+  
   document.getElementById('modalTitle').textContent = 'Tambah Produk Baru';
   document.getElementById('productModal').classList.remove('hidden');
 }
@@ -1076,7 +1070,18 @@ function editProduct(id) {
   document.getElementById('prodPrice').value = p.price;
   document.getElementById('prodStock').value = p.stock;
   document.getElementById('prodDesc').value = p.desc;
-  document.getElementById('prodImage').value = p.image || '';
+  
+  document.getElementById('prodImageExisting').value = p.image || '';
+  if(p.image) {
+    document.getElementById('imagePreview').src = p.image;
+    document.getElementById('imagePreview').classList.remove('hidden');
+    document.getElementById('imagePlaceholderIcon').classList.add('hidden');
+  } else {
+    document.getElementById('imagePreview').src = '';
+    document.getElementById('imagePreview').classList.add('hidden');
+    document.getElementById('imagePlaceholderIcon').classList.remove('hidden');
+  }
+
   document.getElementById('modalTitle').textContent = 'Edit Produk';
   document.getElementById('productModal').classList.remove('hidden');
 }
@@ -1086,27 +1091,61 @@ function closeProductModal() { document.getElementById('productModal').classList
 async function saveProduct(e) {
   e.preventDefault();
   const id = document.getElementById('editProductId').value;
-  const data = {
-    name: document.getElementById('prodName').value,
-    price: parseFloat(document.getElementById('prodPrice').value)||0,
-    stock: parseInt(document.getElementById('prodStock').value)||0,
-    desc: document.getElementById('prodDesc').value,
-    image: document.getElementById('prodImage').value,
-    active: true
-  };
+  const btn = document.getElementById('saveProductBtn');
+  const origBtnHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Sedang Upload...';
+  lucide.createIcons();
 
-  if(isDemoMode) {
-    if(id) { const idx = products.findIndex(x=>x.id===id); products[idx]={...products[idx], ...data}; }
-    else { data.id = 'p'+Date.now(); products.push(data); }
-    showToast('Telah disave (Demo Mode)', 'success');
-    closeProductModal(); renderAllViews();
-  } else {
-    try {
+  let finalImageUrl = document.getElementById('prodImageExisting').value;
+  const fileInput = document.getElementById('prodImageFile');
+
+  try {
+    // Jika ada file dipilih untuk di-upload
+    if (fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      
+      if (isDemoMode) {
+        // Jika dalam Demo Mode, kita tukar kepada Base64 supaya boleh nampak
+        finalImageUrl = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.readAsDataURL(file);
+        });
+      } else {
+        // Jika gunakan Firebase Database Sebenar, upload ke Firebase Storage
+        const fileRef = storage.ref().child('products/' + Date.now() + '_' + file.name);
+        await fileRef.put(file);
+        finalImageUrl = await fileRef.getDownloadURL();
+      }
+    }
+
+    const data = {
+      name: document.getElementById('prodName').value,
+      price: parseFloat(document.getElementById('prodPrice').value)||0,
+      stock: parseInt(document.getElementById('prodStock').value)||0,
+      desc: document.getElementById('prodDesc').value,
+      image: finalImageUrl,
+      active: true
+    };
+
+    if(isDemoMode) {
+      if(id) { const idx = products.findIndex(x=>x.id===id); products[idx]={...products[idx], ...data}; }
+      else { data.id = 'p'+Date.now(); products.push(data); }
+      showToast('Telah disave (Demo Mode)', 'success');
+    } else {
       if(id) await db.collection("products").doc(id).update(data);
       else await db.collection("products").add(data);
-      showToast('Disimpan di Firebase', 'success');
-      closeProductModal();
-    } catch(err) { showToast('Ralat: '+err.message, 'error'); }
+      showToast('Berjaya disimpan di Firebase', 'success');
+    }
+    closeProductModal(); 
+    renderAllViews();
+
+  } catch(err) {
+    showToast('Ralat semasa upload: '+err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origBtnHTML;
   }
 }
 
