@@ -16,7 +16,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   
-  <!-- Firebase SDK (Ditambah Storage) -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -59,7 +59,6 @@
    
    <!-- ================= LOGIN PAGE ================= -->
    <div id="loginPage" class="h-full w-full flex items-center justify-center bg-gradient-to-br from-farm-900 via-farm-800 to-farm-900 relative overflow-hidden">
-    <!-- Hiasan Background -->
     <div class="absolute inset-0 opacity-20 pointer-events-none">
      <div class="absolute -top-20 -left-20 w-64 h-64 border border-gold-400 rounded-full"></div>
      <div class="absolute bottom-10 right-10 w-96 h-96 border border-farm-400 rounded-full"></div>
@@ -141,7 +140,6 @@
 
     <!-- CONTENT AREA -->
     <main class="flex-1 h-full overflow-y-auto bg-gray-50/50">
-     <!-- Top Header -->
      <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-20 no-print shadow-sm">
       <div class="flex items-center gap-4">
        <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600"> <i data-lucide="menu" class="w-6 h-6"></i> </button>
@@ -158,7 +156,6 @@
       </div>
      </header>
 
-     <!-- PAGES CONTAINER -->
      <div class="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
       
       <!-- 1. DASHBOARD -->
@@ -445,7 +442,7 @@
         </div>
        </div>
 
-       <!-- MODAL TAMBAH/EDIT PRODUK (Dinaiktaraf dengan File Upload) -->
+       <!-- MODAL TAMBAH/EDIT PRODUK (DENGAN UPLOAD GAMBAR AUTO-COMPRESS) -->
        <div id="productModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl transform transition-all">
          <div class="flex justify-between items-center mb-6">
@@ -476,9 +473,8 @@
            <input id="prodDesc" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:border-farm-500 transition" placeholder="Cth: Berat 250kg-300kg">
           </div>
 
-          <!-- BAHAGIAN UPLOAD GAMBAR BARU -->
           <div>
-           <label class="text-sm font-semibold text-gray-700 block mb-2">Gambar Produk</label> 
+           <label class="text-sm font-semibold text-gray-700 block mb-2">Gambar Produk (Akan dikecilkan automatik)</label> 
            <div class="flex items-center gap-4">
              <div id="imagePreviewContainer" class="w-24 h-24 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
                <img id="imagePreview" src="" class="w-full h-full object-cover hidden">
@@ -489,7 +485,7 @@
                <label for="prodImageFile" class="cursor-pointer px-4 py-2.5 bg-farm-50 border border-farm-200 rounded-xl text-sm font-bold text-farm-700 hover:bg-farm-100 transition inline-flex items-center">
                  <i data-lucide="upload" class="w-4 h-4 mr-2"></i> Pilih Fail Gambar
                </label>
-               <p class="text-xs text-gray-400 mt-2">Format disokong: JPG, PNG, WEBP.</p>
+               <p class="text-xs text-gray-400 mt-2">Format disokong: JPG, PNG. Fail besar akan dicompress secara automatik.</p>
              </div>
            </div>
            <input type="hidden" id="prodImageExisting">
@@ -1014,7 +1010,7 @@ function renderDelivery() {
 }
 
 // ==========================================
-// 9. ADMIN SETTINGS (CRUD + GAMBAR UPLOAD)
+// 9. ADMIN SETTINGS (CRUD + AUTO COMPRESS)
 // ==========================================
 function renderSettingsTable() {
   const c = document.getElementById('settingsProductsTable');
@@ -1088,11 +1084,45 @@ function editProduct(id) {
 
 function closeProductModal() { document.getElementById('productModal').classList.add('hidden'); }
 
+// --- FUNGSI AUTO COMPRESS GAMBAR ---
+function compressImage(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 600; // Saiz lebar maksimum, jimat ruang
+        let width = img.width;
+        let height = img.height;
+
+        if (width > MAX_WIDTH) {
+          height = Math.round((height * MAX_WIDTH) / width);
+          width = MAX_WIDTH;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Output sebagai JPEG bersaiz ringan (kualiti 70%)
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+    };
+  });
+}
+
+// --- FUNGSI SIMPAN DENGAN UPLOAD COMPRESS ---
 async function saveProduct(e) {
   e.preventDefault();
   const id = document.getElementById('editProductId').value;
   const btn = document.getElementById('saveProductBtn');
   const origBtnHTML = btn.innerHTML;
+  
   btn.disabled = true;
   btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Sedang Upload...';
   lucide.createIcons();
@@ -1101,21 +1131,17 @@ async function saveProduct(e) {
   const fileInput = document.getElementById('prodImageFile');
 
   try {
-    // Jika ada file dipilih untuk di-upload
     if (fileInput.files.length > 0) {
       const file = fileInput.files[0];
       
+      // Compress gambar secara automatik
+      const compressedBase64 = await compressImage(file);
+      
       if (isDemoMode) {
-        // Jika dalam Demo Mode, kita tukar kepada Base64 supaya boleh nampak
-        finalImageUrl = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target.result);
-            reader.readAsDataURL(file);
-        });
+        finalImageUrl = compressedBase64;
       } else {
-        // Jika gunakan Firebase Database Sebenar, upload ke Firebase Storage
-        const fileRef = storage.ref().child('products/' + Date.now() + '_' + file.name);
-        await fileRef.put(file);
+        const fileRef = storage.ref().child('products/' + Date.now() + '.jpg');
+        await fileRef.putString(compressedBase64, 'data_url');
         finalImageUrl = await fileRef.getDownloadURL();
       }
     }
@@ -1138,6 +1164,7 @@ async function saveProduct(e) {
       else await db.collection("products").add(data);
       showToast('Berjaya disimpan di Firebase', 'success');
     }
+    
     closeProductModal(); 
     renderAllViews();
 
@@ -1146,6 +1173,7 @@ async function saveProduct(e) {
   } finally {
     btn.disabled = false;
     btn.innerHTML = origBtnHTML;
+    lucide.createIcons();
   }
 }
 
