@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="ms" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hikmah Machang Farm POS</title>
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f2418">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Tailwind & Icons -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Firebase SDK (Compat version for simplicity in pure HTML) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            farm: { 50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#1a3a2a',900:'#0f2418' },
+            gold: { 50:'#fefce8',100:'#fef9c3',200:'#fef08a',300:'#fde047',400:'#d4a843',500:'#b8860b',600:'#a16207' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { font-family: 'DM Sans', sans-serif; }
+    .font-display { font-family: 'Playfair Display', serif; }
+    .sidebar-item { transition: all 0.2s ease; }
+    .sidebar-item:hover, .sidebar-item.active { background: rgba(255,255,255,0.1); border-left: 3px solid #d4a843; }
+    .card-hover { transition: all 0.3s ease; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+    .fade-in { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    .toast { animation: slideIn 0.3s ease, slideOut 0.3s ease 2.7s; }
+    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+    @keyframes slideOut { from{opacity:1} to{opacity:0;transform:translateX(100%)} }
+    @media print { .no-print{display:none!important} .print-only{display:block!important} }
+    .print-only{display:none}
+    ::-webkit-scrollbar{width:6px}
+    ::-webkit-scrollbar-track{background:#1a3a2a}
+    ::-webkit-scrollbar-thumb{background:#4ade80;border-radius:3px}
+    body { box-sizing: border-box; }
+  </style>
+ </head>
+ <body class="h-full bg-gray-50 overflow-hidden">
+  <div id="app" class="h-full w-full">
+   
+   <!-- LOGIN PAGE -->
+   <div id="loginPage" class="h-full w-full flex items-center justify-center bg-gradient-to-br from-farm-900 via-farm-800 to-farm-900 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+     <div class="absolute top-20 left-20 w-40 h-40 border border-gold-400 rounded-full"></div>
+     <div class="absolute bottom-20 right-20 w-60 h-60 border border-gold-400 rounded-full"></div>
+    </div>
+    <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 md:p-12 w-full max-w-md mx-4 fade-in shadow-2xl">
+     <div class="text-center mb-8">
+      <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-gold-400 to-gold-600 rounded-full flex items-center justify-center shadow-lg">
+       <i data-lucide="tractor" class="w-10 h-10 text-white"></i>
+      </div>
+      <h1 class="font-display text-2xl font-bold text-white">Hikmah Machang Farm</h1>
+      <p class="text-farm-300 text-sm mt-1">Premium Islamic Livestock Farm</p>
+     </div>
+     
+     <div class="space-y-4">
+      <div>
+       <label class="text-farm-200 text-sm font-medium block mb-1">Username (Admin Sahaja)</label> 
+       <input id="loginUser" type="text" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-farm-300 focus:outline-none focus:border-gold-400 transition" placeholder="ID Admin">
+      </div>
+      <div>
+       <label class="text-farm-200 text-sm font-medium block mb-1">Password</label> 
+       <input id="loginPass" type="password" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-farm-300 focus:outline-none focus:border-gold-400 transition" placeholder="Kata Laluan">
+      </div>
+      <div id="loginError" class="text-red-400 text-sm hidden bg-red-900/50 p-2 rounded text-center"></div>
+      
+      <button onclick="handleAdminLogin()" class="w-full py-3 bg-gradient-to-r from-gold-400 to-gold-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2"> 
+        <i data-lucide="shield-check" class="w-5 h-5"></i> Log Masuk Admin 
+      </button>
+
+      <div class="flex items-center my-4">
+        <div class="flex-grow border-t border-white/20"></div>
+        <span class="px-3 text-white/50 text-sm">ATAU</span>
+        <div class="flex-grow border-t border-white/20"></div>
+      </div>
+
+      <button onclick="handleGoogleLogin()" class="w-full py-3 bg-white text-gray-800 font-semibold rounded-xl hover:bg-gray-100 transition-all flex items-center justify-center gap-2 shadow-md"> 
+        <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Log Masuk dengan Google (Staff)
+      </button>
+     </div>
+    </div>
+   </div>
+
+   <!-- MAIN APP (Dipendekkan struktur utama HTML - Kandungan Main App sama seperti kod asal anda, cuma masukkan div di bawah) -->
+   <div id="mainApp" class="h-full w-full hidden flex">
+    <aside id="sidebar" class="w-64 bg-farm-900 h-full flex-shrink-0 flex flex-col z-30 fixed md:relative transition-transform -translate-x-full md:translate-x-0">
+     <!-- [SAMA SEPERTI KOD ASAL] -->
+     <div class="p-5 border-b border-white/10">
+      <div class="flex items-center gap-3">
+       <div class="w-10 h-10 bg-gradient-to-br from-gold-400 to-gold-600 rounded-lg flex items-center justify-center">
+        <i data-lucide="tractor" class="w-5 h-5 text-white"></i>
+       </div>
+       <div>
+        <h2 class="text-white font-semibold text-sm">Hikmah Machang</h2>
+        <p class="text-farm-400 text-xs" id="currentUserRole">Admin</p>
+       </div>
+      </div>
+     </div>
+     <nav class="flex-1 py-4 overflow-y-auto">
+      <div class="space-y-1 px-3">
+       <button onclick="navigateTo('dashboard')" class="sidebar-item active w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/80 text-sm" data-page="dashboard"> <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard </button> 
+       <button onclick="navigateTo('pos')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/80 text-sm" data-page="pos"> <i data-lucide="shopping-cart" class="w-4 h-4"></i> POS Jualan </button> 
+       <button onclick="navigateTo('products')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/80 text-sm" data-page="products"> <i data-lucide="package" class="w-4 h-4"></i> Senarai Produk </button> 
+       <button onclick="navigateTo('history')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/80 text-sm" data-page="history"> <i data-lucide="history" class="w-4 h-4"></i> History Pembelian </button> 
+       <button onclick="navigateTo('customers')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/80 text-sm" data-page="customers"> <i data-lucide="users" class="w-4 h-4"></i> Customer </button> 
+       <button onclick="navigateTo('delivery')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/80 text-sm" data-page="delivery"> <i data-lucide="truck" class="w-4 h-4"></i> Delivery </button> 
+       <button id="settingsBtn" onclick="navigateTo('settings')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/80 text-sm" data-page="settings"> <i data-lucide="settings" class="w-4 h-4"></i> Admin Setting </button>
+      </div>
+     </nav>
+     <div class="p-3 border-t border-white/10">
+      <button onclick="handleLogout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 text-sm transition"> <i data-lucide="log-out" class="w-4 h-4"></i> Log Keluar </button>
+     </div>
+    </aside>
+
+    <main class="flex-1 h-full overflow-y-auto bg-gray-50">
+     <header class="bg-white border-b border-gray-200 px-4 md:px-6 py-3 flex items-center justify-between sticky top-0 z-20 no-print">
+      <div class="flex items-center gap-3">
+       <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-lg hover:bg-gray-100"> <i data-lucide="menu" class="w-5 h-5"></i> </button>
+       <h1 id="pageTitle" class="font-display font-semibold text-farm-900 text-lg">Dashboard</h1>
+      </div>
+      <div class="flex items-center gap-3">
+       <span class="text-sm text-gray-500" id="currentDate"></span>
+       <div class="w-8 h-8 bg-farm-100 rounded-full flex items-center justify-center overflow-hidden">
+        <img id="userAvatar" src="https://ui-avatars.com/api/?name=Admin&background=15803d&color=fff" class="w-full h-full object-cover">
+       </div>
+      </div>
+     </header>
+     
+     <div class="p-4 md:p-6" id="appPagesContainer">
+        <!-- Letakkan semula KESEMUA DIV muka surat anda di sini (<div id="page-dashboard">, <div id="page-pos">, dan lain-lain) dari kod asal anda. Untuk menjimatkan ruang, saya ringkaskan. Sila COPY PASTE bahagian "Pages Container" dari kod asal anda ke sini. -->
+     </div>
+    </main>
+   </div>
+  </div>
+  
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+  <script>
+// ==========================================
+// 1. KONFIGURASI FIREBASE (GANTIKAN INI!)
+// ==========================================
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+// Inisialisasi Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+// ==========================================
+// 2. STATE & PEMBOLEHUBAH
+// ==========================================
+let currentUser = null;
+let currentPage = 'dashboard';
+let cart = [];
+let allOrders = [];
+let invoiceCounter = 1;
+let products = [];
+
+// ==========================================
+// 3. AUTHENTICATION LOGIC
+// ==========================================
+function handleAdminLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  
+  // Login khusus Admin seperti yang diminta
+  if (u === 'admin' && p === 'admin2026') {
+    currentUser = { username: 'Admin Utama', role: 'Admin', photoURL: `https://ui-avatars.com/api/?name=Admin&background=15803d&color=fff` };
+    completeLoginProcess();
+  } else {
+    showAuthError('Kredensial Admin salah. Sila cuba lagi.');
+  }
+}
+
+function handleGoogleLogin() {
+  auth.signInWithPopup(googleProvider)
+    .then((result) => {
+      const user = result.user;
+      currentUser = { 
+        username: user.displayName, 
+        email: user.email, 
+        role: 'Staff', 
+        photoURL: user.photoURL 
+      };
+      completeLoginProcess();
+    })
+    .catch((error) => {
+      showAuthError(error.message);
+    });
+}
+
+function showAuthError(msg) {
+  const err = document.getElementById('loginError');
+  err.textContent = msg;
+  err.classList.remove('hidden');
+}
+
+function completeLoginProcess() {
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('mainApp').classList.remove('hidden');
+  document.getElementById('currentUserRole').textContent = currentUser.role;
+  document.getElementById('userAvatar').src = currentUser.photoURL;
+  
+  const settingsBtn = document.getElementById('settingsBtn');
+  settingsBtn.style.display = (currentUser.role === 'Admin') ? 'flex' : 'none';
+  
+  initRealtimeListeners();
+  navigateTo('dashboard');
+  lucide.createIcons();
+}
+
+function handleLogout() {
+  auth.signOut().then(() => {
+    currentUser = null;
+    document.getElementById('mainApp').classList.add('hidden');
+    document.getElementById('loginPage').classList.remove('hidden');
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginError').classList.add('hidden');
+  });
+}
+
+// ==========================================
+// 4. FIREBASE REALTIME LISTENERS
+// ==========================================
+function initRealtimeListeners() {
+  // Listen to Products
+  db.collection("products").onSnapshot((snapshot) => {
+    products = [];
+    snapshot.forEach((doc) => {
+      products.push({ id: doc.id, ...doc.data() });
+    });
+    
+    // Jika DB kosong (First time run), masukkan data default
+    if (products.length === 0) {
+      seedDefaultProducts();
+    }
+    
+    if(currentPage === 'pos') renderPOSProducts();
+    if(currentPage === 'products' || currentPage === 'settings') renderProductsList(); // Gabung render
+  });
+
+  // Listen to Orders (History)
+  db.collection("orders").orderBy("created_at", "desc").onSnapshot((snapshot) => {
+    allOrders = [];
+    snapshot.forEach((doc) => {
+      allOrders.push({ id: doc.id, ...doc.data() });
+    });
+    
+    invoiceCounter = allOrders.length + 1;
+    
+    updateDashboardStats();
+    if (currentPage === 'history') renderHistory();
+    if (currentPage === 'customers') renderCustomers();
+    if (currentPage === 'delivery') renderDelivery();
+    if (currentPage === 'dashboard') renderRecentTransactions();
+  });
+}
+
+function seedDefaultProducts() {
+  const defaultProds = [
+    { name: 'Lembu Grade A', desc: '250-300kg', price: 8500, stock: 12, active: true, emoji: '🐂' },
+    { name: 'Lembu Grade B', desc: '200-250kg', price: 6500, stock: 8, active: true, emoji: '🐄' },
+    { name: 'Kambing', desc: 'Kambing dewasa', price: 1200, stock: 25, active: true, emoji: '🐐' },
+  ];
+  defaultProds.forEach(p => db.collection("products").add(p));
+}
+
+// ==========================================
+// 5. UPDATE CHECKOUT UNTUK GUNA FIREBASE
+// ==========================================
+async function processCheckout(e) {
+  e.preventDefault();
+  const btn = document.getElementById('processBtn');
+  btn.disabled = true;
+  btn.textContent = 'Memproses...';
+
+  const total = cart.reduce((s, c) => { const p = products.find(x => x.id === c.id); return s + (p.price * c.qty); }, 0);
+  const payType = document.getElementById('paymentType').value;
+  const deposit = payType === 'deposit' ? (parseFloat(document.getElementById('depositAmount').value) || 0) : total;
+  const balance = total - deposit;
+  const invNo = 'HMF-' + String(Date.now()).slice(-6) + '-' + String(invoiceCounter).padStart(3,'0');
+
+  const items = cart.map(c => { const p = products.find(x => x.id === c.id); return { id: p.id, name: p.name, qty: c.qty, price: p.price, subtotal: p.price * c.qty }; });
+
+  const order = {
+    type: 'order',
+    buyer_name: document.getElementById('buyerName').value,
+    buyer_phone: document.getElementById('buyerPhone').value,
+    buyer_address: document.getElementById('buyerAddress').value,
+    delivery_date: document.getElementById('deliveryDate').value,
+    notes: document.getElementById('buyerNotes').value,
+    items: items,
+    total_amount: total,
+    payment_type: payType,
+    deposit_amount: deposit,
+    balance: balance,
+    status: payType === 'full' ? 'paid' : 'deposit',
+    invoice_number: invNo,
+    created_at: new Date().toISOString(),
+    created_by: currentUser.username
+  };
+
+  try {
+    // Save Order
+    await db.collection("orders").add(order);
+    
+    // Tolak Stok dari Firebase
+    const batch = db.batch();
+    items.forEach(item => {
+      const pRef = db.collection("products").doc(item.id);
+      const currentStock = products.find(p => p.id === item.id).stock;
+      batch.update(pRef, { stock: Math.max(0, currentStock - item.qty) });
+    });
+    await batch.commit();
+
+    btn.disabled = false;
+    btn.textContent = 'Proses Pembayaran';
+    
+    showInvoice(order, items);
+    cart = [];
+    document.getElementById('checkoutForm').reset();
+    showToast('Transaksi berjaya disimpan di Firebase!', 'success');
+  } catch (error) {
+    btn.disabled = false;
+    btn.textContent = 'Proses Pembayaran';
+    showToast('Gagal menyimpan: ' + error.message, 'error');
+  }
+}
+
+// Pendaftaran Service Worker untuk PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('Service Worker didaftarkan!', reg))
+      .catch(err => console.error('Service Worker gagal:', err));
+  });
+}
+
+// ... COPY PASTE BAKI FUNCTION NAVIGATE, RENDER, INVOICE, DAN LAIN-LAIN DARI KOD ASAL ANDA DI SINI ...
+
+  </script>
+ </body>
+</html>
