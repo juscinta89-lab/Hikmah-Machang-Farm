@@ -3,16 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hikmah Machang Farm POS - v2.1</title>
+  <title>Hikmah Machang Farm POS - v3.0</title>
   <meta name="theme-color" content="#0f2418">
-  <!-- Manifest inline (data URL) untuk elak 404 -->
   <link rel="manifest" href='data:application/manifest+json,{"name":"Hikmah Machang Farm POS","short_name":"HMF POS","start_url":".","display":"standalone","background_color":"%230f2418","theme_color":"%230f2418","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3210/3210064.png","sizes":"512x512","type":"image/png"}]}'>
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3210/3210064.png">
   <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3210/3210064.png">
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <!-- html2pdf untuk save PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -41,6 +39,8 @@
     ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:#f3f4f6}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
     .badge-pulse{animation:pulse 2s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
     .receipt-divider{border-top:2px dashed #d1d5db}
+    .logo-img{object-fit:contain;width:100%;height:100%}
+    .tab-btn.active{background:#15803d;color:white}
   </style>
 </head>
 <body class="h-full bg-gray-50 overflow-hidden text-gray-800">
@@ -55,16 +55,16 @@
     <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 md:p-10 w-full max-w-md mx-4 fade-in shadow-2xl z-10">
      <div class="text-center mb-8">
       <div class="w-24 h-24 mx-auto mb-4 bg-white rounded-full flex items-center justify-center shadow-lg p-2">
-       <img src="https://cdn-icons-png.flaticon.com/512/3210/3210064.png" alt="Logo" class="w-full h-full object-contain">
+       <img id="loginLogo" src="https://cdn-icons-png.flaticon.com/512/3210/3210064.png" alt="Logo" class="logo-img">
       </div>
-      <h1 class="font-display text-3xl font-bold text-white tracking-wide">Hikmah Machang</h1>
-      <p class="text-gold-400 text-sm mt-1 font-medium">Premium Islamic Livestock Farm</p>
-      <p class="text-white/40 text-xs mt-2">Sistem POS v2.1</p>
+      <h1 id="loginBrandTitle" class="font-display text-3xl font-bold text-white tracking-wide">Hikmah Machang</h1>
+      <p id="loginTagline" class="text-gold-400 text-sm mt-1 font-medium">Premium Islamic Livestock Farm</p>
+      <p class="text-white/40 text-xs mt-2">Sistem POS v3.0</p>
      </div>
      <form id="loginForm" onsubmit="event.preventDefault(); handleManualLogin();" class="space-y-5">
       <div>
-       <label class="text-farm-100 text-sm font-medium block mb-1">E-mel Admin / ID Staff</label>
-       <input id="loginUser" type="text" autocomplete="username" class="w-full px-5 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition" placeholder="Cth: admin@hikmahfarm.com">
+       <label class="text-farm-100 text-sm font-medium block mb-1">E-mel</label>
+       <input id="loginUser" type="text" autocomplete="username" class="w-full px-5 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition" placeholder="contoh@email.com">
       </div>
       <div>
        <label class="text-farm-100 text-sm font-medium block mb-1">Password</label>
@@ -81,22 +81,21 @@
       </div>
       <button type="button" onclick="handleGoogleLogin()" class="w-full py-3.5 bg-white text-gray-800 font-semibold rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-3 shadow-md">
         <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
-        Log Masuk Staff (Google)
+        Log Masuk dengan Google
       </button>
      </form>
     </div>
    </div>
-
    <!-- MAIN APP -->
    <div id="mainApp" class="h-full w-full hidden flex">
     <aside id="sidebar" class="w-64 bg-farm-900 h-full flex-shrink-0 flex flex-col z-30 fixed md:relative transition-transform -translate-x-full md:translate-x-0 shadow-xl">
      <div class="p-6 border-b border-white/10">
       <div class="flex items-center gap-3">
        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center p-1">
-        <img src="https://cdn-icons-png.flaticon.com/512/3210/3210064.png" class="w-full h-full object-contain">
+        <img id="sidebarLogo" src="https://cdn-icons-png.flaticon.com/512/3210/3210064.png" class="logo-img">
        </div>
        <div>
-        <h2 class="text-white font-display font-bold text-md leading-tight">Hikmah<br>Machang</h2>
+        <h2 id="sidebarBrandText" class="text-white font-display font-bold text-md leading-tight">Hikmah<br>Machang</h2>
         <span id="currentUserRole" class="inline-block px-2 py-0.5 bg-gold-500/20 text-gold-400 text-[10px] rounded uppercase tracking-wider mt-1 font-bold border border-gold-500/30">Admin</span>
        </div>
       </div>
@@ -145,6 +144,7 @@
       </div>
      </header>
      <div class="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+
        <!-- DASHBOARD -->
       <div id="page-dashboard" class="page fade-in">
        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
@@ -339,10 +339,10 @@
       <div id="page-invoice" class="page hidden fade-in">
        <div id="printArea" class="max-w-2xl mx-auto bg-white rounded-2xl border border-gray-200 p-8 md:p-12 shadow-sm relative">
         <div class="text-center mb-8 receipt-divider pb-6">
-         <div class="w-16 h-16 mx-auto mb-3 opacity-90 flex items-center justify-center"><img src="https://cdn-icons-png.flaticon.com/512/3210/3210064.png" class="w-full h-full object-contain"></div>
-         <h2 class="font-display text-2xl font-bold text-gray-900">Hikmah Machang Farm</h2>
-         <p class="text-sm text-gray-500 mt-1">Premium Islamic Livestock Farm</p>
-         <p class="text-xs text-gray-400 mt-1">📞 +60 19-XXX XXXX | 📍 Machang, Kelantan</p>
+         <div class="w-16 h-16 mx-auto mb-3 opacity-90 flex items-center justify-center"><img id="invoiceLogo" src="https://cdn-icons-png.flaticon.com/512/3210/3210064.png" class="logo-img"></div>
+         <h2 id="invoiceBrandTitle" class="font-display text-2xl font-bold text-gray-900">Hikmah Machang Farm</h2>
+         <p id="invoiceTagline" class="text-sm text-gray-500 mt-1">Premium Islamic Livestock Farm</p>
+         <p id="invoiceContact" class="text-xs text-gray-400 mt-1">📞 +60 19-XXX XXXX | 📍 Machang, Kelantan</p>
          <div class="flex justify-between items-end mt-6 text-left">
            <div><p class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">No. Resit</p><p class="text-sm font-bold text-gray-800" id="invNoDisplay">HMF-0000</p></div>
            <div class="text-right"><p class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">Tarikh</p><p class="text-sm font-bold text-gray-800" id="invDateDisplay">01/01/2026</p></div>
@@ -384,7 +384,7 @@
         </div>
         <div class="mt-8 text-center text-xs text-gray-400 print-only">
          <p class="font-bold">Jazakumullahu Khairan. Semoga diberkati.</p>
-         <p>Sistem POS oleh Hikmah Machang Farm v2.1</p>
+         <p>Sistem POS oleh Hikmah Machang Farm v3.0</p>
          <p class="mt-2">📌 Sila simpan resit ini sebagai bukti pembayaran</p>
         </div>
        </div>
@@ -485,8 +485,144 @@
 
       <!-- SETTINGS -->
       <div id="page-settings" class="page hidden fade-in">
-       <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm mb-6">
-         <h3 class="font-bold text-farm-900 text-lg mb-4">Backup & Pemulihan Data</h3>
+
+       <!-- TAB SWITCHER -->
+       <div class="bg-white rounded-2xl border border-gray-200 p-2 shadow-sm mb-6 flex gap-2 flex-wrap">
+         <button type="button" onclick="switchSettingsTab('products')" class="tab-btn active flex-1 min-w-[120px] py-3 px-4 rounded-xl font-bold text-sm transition flex items-center justify-center gap-2" data-tab="products">
+           <i data-lucide="package" class="w-4 h-4"></i> Produk
+         </button>
+         <button type="button" onclick="switchSettingsTab('admins')" class="tab-btn flex-1 min-w-[120px] py-3 px-4 rounded-xl font-bold text-sm transition flex items-center justify-center gap-2 text-gray-600 hover:bg-gray-50" data-tab="admins">
+           <i data-lucide="user-cog" class="w-4 h-4"></i> Pengguna
+         </button>
+         <button type="button" onclick="switchSettingsTab('branding')" class="tab-btn flex-1 min-w-[120px] py-3 px-4 rounded-xl font-bold text-sm transition flex items-center justify-center gap-2 text-gray-600 hover:bg-gray-50" data-tab="branding">
+           <i data-lucide="image" class="w-4 h-4"></i> Logo & Brand
+         </button>
+         <button type="button" onclick="switchSettingsTab('backup')" class="tab-btn flex-1 min-w-[120px] py-3 px-4 rounded-xl font-bold text-sm transition flex items-center justify-center gap-2 text-gray-600 hover:bg-gray-50" data-tab="backup">
+           <i data-lucide="database" class="w-4 h-4"></i> Backup
+         </button>
+       </div>
+
+       <!-- TAB: PRODUCTS -->
+       <div id="settings-tab-products" class="settings-tab">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+         <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+          <div><h3 class="font-bold text-farm-900 text-lg">Pengurusan Produk</h3><p class="text-sm text-gray-500">Tambah, buang, atau ubah produk.</p></div>
+          <button type="button" onclick="showAddProduct()" class="px-5 py-2.5 bg-farm-600 text-white rounded-xl text-sm font-bold hover:bg-farm-700 transition flex items-center gap-2 shadow-sm"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Baru</button>
+         </div>
+         <div class="overflow-x-auto">
+           <table class="w-full text-left">
+             <thead>
+               <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                 <th class="p-4 rounded-tl-xl">Produk</th>
+                 <th class="p-4">Harga</th>
+                 <th class="p-4">Stok</th>
+                 <th class="p-4">Status</th>
+                 <th class="p-4 rounded-tr-xl text-right">Tindakan</th>
+               </tr>
+             </thead>
+             <tbody id="settingsProductsTable" class="divide-y divide-gray-100"></tbody>
+           </table>
+         </div>
+        </div>
+       </div>
+
+       <!-- TAB: ADMINS / USERS -->
+       <div id="settings-tab-admins" class="settings-tab hidden">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-100">
+          <div>
+            <h3 class="font-bold text-farm-900 text-lg">Pengurusan Akses Pengguna</h3>
+            <p class="text-sm text-gray-500">Tetapkan siapa yang boleh akses sistem & peranan mereka.</p>
+          </div>
+          <button type="button" onclick="showAddUserModal()" class="px-5 py-2.5 bg-farm-600 text-white rounded-xl text-sm font-bold hover:bg-farm-700 transition flex items-center gap-2 shadow-sm whitespace-nowrap"><i data-lucide="user-plus" class="w-4 h-4"></i> Beri Akses</button>
+         </div>
+         <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-xs text-blue-800">
+           <p class="font-bold mb-2 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> Cara Tambah Pengguna Baharu:</p>
+           <ol class="list-decimal list-inside space-y-1 ml-1">
+             <li>Pergi ke <strong>Firebase Console</strong> → Authentication → Add User (cipta akaun email + password di sana)</li>
+             <li>Atau biarkan mereka <strong>"Log Masuk dengan Google"</strong> sekali sahaja (akaun akan dicipta otomatik)</li>
+             <li>Kemudian <strong>kembali ke sini</strong> dan klik <strong>"Beri Akses"</strong> untuk tetapkan peranan mereka (Admin / Staff)</li>
+             <li>Tanpa langkah ini, pengguna tidak dapat masuk walaupun ada akaun Firebase</li>
+           </ol>
+         </div>
+         <div class="overflow-x-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                <th class="p-4 rounded-tl-xl">Pengguna</th>
+                <th class="p-4">Peranan</th>
+                <th class="p-4">Tarikh Diberi Akses</th>
+                <th class="p-4 rounded-tr-xl text-right">Tindakan</th>
+              </tr>
+            </thead>
+            <tbody id="adminsListTable" class="divide-y divide-gray-100"></tbody>
+          </table>
+         </div>
+        </div>
+       </div>
+
+       <!-- TAB: BRANDING / LOGO -->
+       <div id="settings-tab-branding" class="settings-tab hidden">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+         <div class="mb-6 pb-4 border-b border-gray-100">
+           <h3 class="font-bold text-farm-900 text-lg">Logo & Identiti Syarikat</h3>
+           <p class="text-sm text-gray-500">Logo akan dipaparkan di Sidebar, Login, dan Resit.</p>
+         </div>
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+           <div>
+             <label class="text-sm font-semibold text-gray-700 block mb-3">Logo Semasa</label>
+             <div class="bg-gradient-to-br from-farm-900 to-farm-800 rounded-2xl p-8 flex items-center justify-center min-h-[200px] border border-gray-200">
+               <div class="w-32 h-32 bg-white rounded-2xl p-3 shadow-2xl flex items-center justify-center">
+                 <img id="brandingPreview" src="https://cdn-icons-png.flaticon.com/512/3210/3210064.png" class="logo-img" alt="Logo">
+               </div>
+             </div>
+             <button type="button" onclick="resetLogo()" class="mt-4 w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2">
+               <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Set Semula Logo Asal
+             </button>
+           </div>
+           <div class="space-y-4">
+             <div>
+               <label class="text-sm font-semibold text-gray-700 block mb-2">Muat Naik Logo Baharu</label>
+               <label class="block w-full p-6 bg-purple-50 hover:bg-purple-100 border-2 border-dashed border-purple-300 rounded-2xl cursor-pointer transition text-center">
+                 <i data-lucide="upload-cloud" class="w-10 h-10 mx-auto text-purple-500 mb-2"></i>
+                 <p class="text-sm font-bold text-purple-900">Klik untuk pilih fail</p>
+                 <p class="text-xs text-purple-700 mt-1">PNG, JPG, SVG • Maks 500KB • Cadangan 512x512</p>
+                 <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" onchange="handleLogoUpload(event)" class="hidden">
+               </label>
+             </div>
+             <div>
+               <label class="text-sm font-semibold text-gray-700 block mb-2">Nama Syarikat (Sidebar - Baris 1)</label>
+               <input id="brandingName1" type="text" maxlength="20" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 bg-gray-50 focus:bg-white" placeholder="Contoh: Hikmah">
+             </div>
+             <div>
+               <label class="text-sm font-semibold text-gray-700 block mb-2">Nama Syarikat (Sidebar - Baris 2)</label>
+               <input id="brandingName2" type="text" maxlength="20" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 bg-gray-50 focus:bg-white" placeholder="Contoh: Machang">
+             </div>
+             <div>
+               <label class="text-sm font-semibold text-gray-700 block mb-2">Tagline (Login & Resit)</label>
+               <input id="brandingTagline" type="text" maxlength="60" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 bg-gray-50 focus:bg-white" placeholder="Contoh: Premium Islamic Livestock Farm">
+             </div>
+             <div>
+               <label class="text-sm font-semibold text-gray-700 block mb-2">Telefon (Resit)</label>
+               <input id="brandingPhone" type="text" maxlength="40" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 bg-gray-50 focus:bg-white" placeholder="Contoh: +60 19-XXX XXXX">
+             </div>
+             <div>
+               <label class="text-sm font-semibold text-gray-700 block mb-2">Alamat (Resit)</label>
+               <input id="brandingAddress" type="text" maxlength="80" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-farm-500 bg-gray-50 focus:bg-white" placeholder="Contoh: Machang, Kelantan">
+             </div>
+             <button type="button" onclick="saveBranding()" class="w-full py-3 bg-farm-600 text-white rounded-xl font-bold hover:bg-farm-700 shadow-md transition flex items-center justify-center gap-2">
+               <i data-lucide="save" class="w-4 h-4"></i> Simpan Tetapan Brand
+             </button>
+           </div>
+         </div>
+        </div>
+       </div>
+
+       <!-- TAB: BACKUP -->
+       <div id="settings-tab-backup" class="settings-tab hidden">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+         <h3 class="font-bold text-farm-900 text-lg mb-1">Backup & Pemulihan Data</h3>
+         <p class="text-sm text-gray-500 mb-6">Eksport data anda sebagai fail JSON, atau pulihkan dari backup terdahulu.</p>
          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
            <button type="button" onclick="exportBackup()" class="p-4 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl flex items-center gap-3 transition">
              <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center"><i data-lucide="cloud-download" class="w-5 h-5 text-white"></i></div>
@@ -498,27 +634,10 @@
              <input type="file" accept=".json" onchange="importBackup(event)" class="hidden">
            </label>
          </div>
-       </div>
-       <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-        <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
-         <div><h3 class="font-bold text-farm-900 text-lg">Pengurusan Produk</h3><p class="text-sm text-gray-500">Tambah, buang, atau ubah produk.</p></div>
-         <button type="button" onclick="showAddProduct()" class="px-5 py-2.5 bg-farm-600 text-white rounded-xl text-sm font-bold hover:bg-farm-700 transition flex items-center gap-2 shadow-sm"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Baru</button>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left">
-            <thead>
-              <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                <th class="p-4 rounded-tl-xl">Produk</th>
-                <th class="p-4">Harga</th>
-                <th class="p-4">Stok</th>
-                <th class="p-4">Status</th>
-                <th class="p-4 rounded-tr-xl text-right">Tindakan</th>
-              </tr>
-            </thead>
-            <tbody id="settingsProductsTable" class="divide-y divide-gray-100"></tbody>
-          </table>
         </div>
        </div>
+
+       <!-- MODAL: PRODUCT -->
        <div id="productModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
          <div class="flex justify-between items-center mb-6">
@@ -572,6 +691,44 @@
          </form>
         </div>
        </div>
+
+       <!-- MODAL: ADD/EDIT USER ACCESS -->
+       <div id="userModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl">
+         <div class="flex justify-between items-center mb-6">
+           <h4 id="userModalTitle" class="font-bold text-xl text-farm-900">Beri Akses Pengguna</h4>
+           <button type="button" onclick="closeUserModal()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-6 h-6"></i></button>
+         </div>
+         <form id="userForm" onsubmit="saveUser(event)" class="space-y-4">
+          <input type="hidden" id="editUserId">
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800">
+            <p class="font-bold mb-1">📌 Pastikan akaun Firebase telah dicipta dahulu:</p>
+            <p>Pergi ke <strong>Firebase Console → Authentication → Add User</strong>, atau biarkan mereka login dengan Google sekali sahaja.</p>
+          </div>
+          <div>
+           <label class="text-sm font-semibold text-gray-700 block mb-1">Nama Pengguna <span class="text-red-500">*</span></label>
+           <input id="userName" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:border-farm-500 transition" placeholder="Cth: Ahmad Bin Ali">
+          </div>
+          <div>
+           <label class="text-sm font-semibold text-gray-700 block mb-1">E-mel <span class="text-red-500">*</span></label>
+           <input id="userEmail" type="email" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:border-farm-500 transition" placeholder="contoh@email.com">
+           <p class="text-[11px] text-gray-500 mt-1">Email mestilah sama dengan email yang didaftar di Firebase Authentication.</p>
+          </div>
+          <div>
+           <label class="text-sm font-semibold text-gray-700 block mb-1">Peranan <span class="text-red-500">*</span></label>
+           <select id="userRole" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:border-farm-500 transition font-medium">
+             <option value="Staff">Staff (POS, Customer, Delivery sahaja)</option>
+             <option value="Admin">Admin (Akses Penuh termasuk Settings)</option>
+           </select>
+          </div>
+          <div class="flex gap-3 pt-4 mt-2 border-t border-gray-100">
+           <button type="button" onclick="closeUserModal()" class="flex-1 py-3 border-2 border-gray-200 rounded-xl text-gray-600 font-bold hover:bg-gray-50 transition">Batal</button>
+           <button type="submit" id="saveUserBtn" class="flex-1 py-3 bg-farm-600 text-white rounded-xl font-bold hover:bg-farm-700 shadow-md transition flex items-center justify-center gap-2">Simpan</button>
+          </div>
+         </form>
+        </div>
+       </div>
+
       </div>
 
      </div>
@@ -629,28 +786,68 @@ const firebaseConfig = {
   projectId: "hikmah-pos-6290f",
   storageBucket: "hikmah-pos-6290f.firebasestorage.app",
   messagingSenderId: "964156564208",
-  appId: "1:964156564208:web:90dfdcb2989b7d1cd61835"
+  appId: "1:964156564208:web:90dfdcb2989b7d1cd61835",
+  measurementId: "G-PF566F81Q7"
 };
+const ADMIN_BOOTSTRAP_EMAIL = "admin@hikmahfarm.com"; // Email ini akan auto-Admin walaupun belum ada dalam senarai
 const defaultData = [
   { id:'p1', name:'Lembu Grade A', desc:'Sado (250-300kg)', price:8500, cost:7000, stock:12, minStock:3, active:true, emoji:'🐂' },
   { id:'p2', name:'Lembu Grade B', desc:'Biasa (200-250kg)', price:6500, cost:5200, stock:8, minStock:3, active:true, emoji:'🐄' },
   { id:'p3', name:'Kambing', desc:'Kambing Dewasa Jantan', price:1200, cost:900, stock:25, minStock:5, active:true, emoji:'🐐' },
   { id:'p4', name:'Biri-Biri', desc:'Biri-biri pedaging', price:850, cost:600, stock:15, minStock:5, active:true, emoji:'🐑' }
 ];
+const DEFAULT_LOGO='https://cdn-icons-png.flaticon.com/512/3210/3210064.png';
+const DEFAULT_BRANDING={
+  logo:DEFAULT_LOGO,
+  name1:'Hikmah',
+  name2:'Machang',
+  fullName:'Hikmah Machang Farm',
+  tagline:'Premium Islamic Livestock Farm',
+  phone:'+60 19-XXX XXXX',
+  address:'Machang, Kelantan'
+};
+let branding={...DEFAULT_BRANDING};
+let users=[];
 
 let currentUser=null, currentPage='dashboard', cart=[], products=[], allOrders=[], isDemoMode=false;
 let db=null, auth=null, googleProvider=null, salesChartInstance=null, payingBalanceOrderId=null, lastInvoiceData=null;
 
 function initSystem(){
   if(firebaseConfig.apiKey==="YOUR_API_KEY"||!firebaseConfig.apiKey){
-    isDemoMode=true; products=[...defaultData]; loadFromLocalStorage(); renderAllViews();
+    isDemoMode=true; products=[...defaultData]; loadFromLocalStorage(); applyBranding(); renderAllViews();
   } else {
     try{ firebase.initializeApp(firebaseConfig); db=firebase.firestore(); auth=firebase.auth(); googleProvider=new firebase.auth.GoogleAuthProvider();
-    } catch(e){ isDemoMode=true; products=[...defaultData]; loadFromLocalStorage(); }
+    } catch(e){ isDemoMode=true; products=[...defaultData]; loadFromLocalStorage(); applyBranding(); }
   }
 }
-function saveToLocalStorage(){ if(!isDemoMode)return; try{localStorage.setItem('hmf_products',JSON.stringify(products)); localStorage.setItem('hmf_orders',JSON.stringify(allOrders));}catch(e){} }
-function loadFromLocalStorage(){ if(!isDemoMode)return; try{const p=localStorage.getItem('hmf_products'); const o=localStorage.getItem('hmf_orders'); if(p)products=JSON.parse(p); if(o)allOrders=JSON.parse(o);}catch(e){} }
+function saveToLocalStorage(){
+  if(!isDemoMode)return;
+  try{
+    localStorage.setItem('hmf_products',JSON.stringify(products));
+    localStorage.setItem('hmf_orders',JSON.stringify(allOrders));
+    localStorage.setItem('hmf_users',JSON.stringify(users));
+    localStorage.setItem('hmf_branding',JSON.stringify(branding));
+  }catch(e){}
+}
+function loadFromLocalStorage(){
+  if(!isDemoMode)return;
+  try{
+    const p=localStorage.getItem('hmf_products');
+    const o=localStorage.getItem('hmf_orders');
+    const u=localStorage.getItem('hmf_users');
+    const b=localStorage.getItem('hmf_branding');
+    if(p)products=JSON.parse(p);
+    if(o)allOrders=JSON.parse(o);
+    if(u)users=JSON.parse(u);
+    if(b)branding={...DEFAULT_BRANDING,...JSON.parse(b)};
+    if(users.length===0){
+      users=[
+        {id:'u1',name:'Admin Farm',email:'admin',password:'admin2026',role:'Admin',created_at:new Date().toISOString()},
+        {id:'u2',name:'Staff POS',email:'staff',password:'staff123',role:'Staff',created_at:new Date().toISOString()}
+      ];
+    }
+  }catch(e){}
+}
 initSystem();
 
 // =========== HELPERS ===========
@@ -658,9 +855,61 @@ function escapeHtml(str){
   if(str===null||str===undefined)return '';
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
-function escapeAttr(str){
-  if(str===null||str===undefined)return '';
-  return String(str).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"').replace(/\n/g,'\\n').replace(/\r/g,'');
+
+// =========== BRANDING / LOGO ===========
+function applyBranding(){
+  const logoEls=document.querySelectorAll('.logo-img, #brandingPreview, #sidebarLogo, #loginLogo, #invoiceLogo');
+  logoEls.forEach(el=>{ if(el)el.src=branding.logo||DEFAULT_LOGO; });
+  const sb=document.getElementById('sidebarBrandText');
+  if(sb)sb.innerHTML=`${escapeHtml(branding.name1)}<br>${escapeHtml(branding.name2)}`;
+  const lt=document.getElementById('loginBrandTitle');
+  if(lt)lt.textContent=branding.name1+' '+branding.name2;
+  const ltag=document.getElementById('loginTagline');
+  if(ltag)ltag.textContent=branding.tagline;
+  const it=document.getElementById('invoiceBrandTitle');
+  if(it)it.textContent=branding.fullName||(branding.name1+' '+branding.name2+' Farm');
+  const itag=document.getElementById('invoiceTagline');
+  if(itag)itag.textContent=branding.tagline;
+  const icon=document.getElementById('invoiceContact');
+  if(icon)icon.textContent=`📞 ${branding.phone} | 📍 ${branding.address}`;
+  document.title=`${branding.name1} ${branding.name2} POS - v3.0`;
+}
+function loadBrandingForm(){
+  const bp=document.getElementById('brandingPreview'); if(bp)bp.src=branding.logo||DEFAULT_LOGO;
+  const f=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||'';};
+  f('brandingName1',branding.name1); f('brandingName2',branding.name2);
+  f('brandingTagline',branding.tagline); f('brandingPhone',branding.phone); f('brandingAddress',branding.address);
+}
+function handleLogoUpload(e){
+  const file=e.target.files[0]; if(!file)return;
+  if(file.size>500*1024){showToast('Saiz fail melebihi 500KB','error');e.target.value='';return;}
+  const reader=new FileReader();
+  reader.onload=(ev)=>{
+    branding.logo=ev.target.result;
+    document.getElementById('brandingPreview').src=branding.logo;
+    showToast('Logo dimuat naik. Klik "Simpan Tetapan Brand" untuk mengesahkan.','success');
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+}
+function resetLogo(){
+  if(!confirm('Pulih logo asal?'))return;
+  branding.logo=DEFAULT_LOGO;
+  document.getElementById('brandingPreview').src=DEFAULT_LOGO;
+  showToast('Logo direset. Klik Simpan untuk mengesahkan.','success');
+}
+async function saveBranding(){
+  branding.name1=document.getElementById('brandingName1').value.trim()||'Hikmah';
+  branding.name2=document.getElementById('brandingName2').value.trim()||'Machang';
+  branding.fullName=`${branding.name1} ${branding.name2} Farm`;
+  branding.tagline=document.getElementById('brandingTagline').value.trim()||DEFAULT_BRANDING.tagline;
+  branding.phone=document.getElementById('brandingPhone').value.trim()||DEFAULT_BRANDING.phone;
+  branding.address=document.getElementById('brandingAddress').value.trim()||DEFAULT_BRANDING.address;
+  if(isDemoMode){saveToLocalStorage();applyBranding();showToast('Tetapan brand disimpan','success');return;}
+  try{
+    await db.collection("settings").doc("branding").set(branding);
+    applyBranding(); showToast('Tetapan brand disimpan ke Firebase','success');
+  }catch(err){showToast('Ralat: '+err.message,'error');}
 }
 
 // =========== LOGIN ===========
@@ -668,21 +917,48 @@ function handleManualLogin(){
   const u=document.getElementById('loginUser').value.trim(); const p=document.getElementById('loginPass').value;
   if(!u||!p){showError('Sila masukkan E-mel dan Password');return;}
   if(isDemoMode){
-    if(u==='admin'&&p==='admin2026'){currentUser={username:'Admin Farm',role:'Admin',photo:'https://ui-avatars.com/api/?name=Ad&background=d4a843&color=fff'};completeLogin();}
-    else if(u==='staff'&&p==='staff123'){currentUser={username:'Staff POS',role:'Staff',photo:'https://ui-avatars.com/api/?name=St&background=15803d&color=fff'};completeLogin();}
+    const found=users.find(x=>x.email.toLowerCase()===u.toLowerCase()&&x.password===p);
+    if(found){currentUser={username:found.name,role:found.role,email:found.email,photo:`https://ui-avatars.com/api/?name=${encodeURIComponent(found.name.substring(0,2))}&background=${found.role==='Admin'?'d4a843':'15803d'}&color=fff`};completeLogin();}
     else showError('Kredensial salah.');
     return;
   }
-  auth.signInWithEmailAndPassword(u,p).then((uc)=>{
-    const user=uc.user;
-    if(user.email==='admin@hikmahfarm.com')currentUser={username:'Admin Utama',role:'Admin',email:user.email,photo:'https://ui-avatars.com/api/?name=Ad&background=d4a843&color=fff'};
-    else currentUser={username:'Staff Farm',role:'Staff',email:user.email,photo:'https://ui-avatars.com/api/?name=St&background=15803d&color=fff'};
-    completeLogin();
+  auth.signInWithEmailAndPassword(u,p).then(async (uc)=>{
+    await resolveUserRole(uc.user); completeLogin();
   }).catch(()=>showError('E-mel atau kata laluan salah.'));
 }
 function handleGoogleLogin(){
   if(isDemoMode){currentUser={username:'Google Staff',role:'Staff',photo:'https://ui-avatars.com/api/?name=GS&background=4285F4&color=fff'};completeLogin();return;}
-  auth.signInWithPopup(googleProvider).then((r)=>{currentUser={username:r.user.displayName,email:r.user.email,role:'Staff',photo:r.user.photoURL};completeLogin();}).catch(e=>showError(e.message));
+  auth.signInWithPopup(googleProvider).then(async (r)=>{
+    await resolveUserRole(r.user); completeLogin();
+  }).catch(e=>showError(e.message));
+}
+async function resolveUserRole(fbUser){
+  let role=null, name=fbUser.displayName||fbUser.email.split('@')[0];
+  try{
+    const snap=await db.collection("users").doc(fbUser.uid).get();
+    if(snap.exists){const d=snap.data(); role=d.role||'Staff'; name=d.name||name;}
+  }catch(e){}
+  if(!role){
+    // Cuba cari ikut email (kalau admin tambah email tapi user belum login pernah → ada doc tanpa uid match)
+    try{
+      const q=await db.collection("users").where("email","==",fbUser.email).limit(1).get();
+      if(!q.empty){const d=q.docs[0].data(); role=d.role||'Staff'; name=d.name||name;
+        // Migrate doc to use uid as ID
+        await db.collection("users").doc(fbUser.uid).set({name,email:fbUser.email,role,created_at:d.created_at||new Date().toISOString()});
+        if(q.docs[0].id!==fbUser.uid){await db.collection("users").doc(q.docs[0].id).delete().catch(()=>{});}
+      }
+    }catch(e){}
+  }
+  if(!role&&fbUser.email===ADMIN_BOOTSTRAP_EMAIL){
+    role='Admin';
+    try{await db.collection("users").doc(fbUser.uid).set({name:name||'Admin',email:fbUser.email,role:'Admin',created_at:new Date().toISOString()});}catch(e){}
+  }
+  if(!role){
+    // Tiada akses - log keluar dan tunjuk error
+    auth.signOut();
+    throw new Error('Akaun anda tiada akses. Sila hubungi admin.');
+  }
+  currentUser={username:name,role:role,email:fbUser.email,uid:fbUser.uid,photo:fbUser.photoURL||`https://ui-avatars.com/api/?name=${encodeURIComponent(name.substring(0,2))}&background=${role==='Admin'?'d4a843':'15803d'}&color=fff`};
 }
 function showError(m){const e=document.getElementById('loginError');e.textContent=m;e.classList.remove('hidden');}
 function completeLogin(){
@@ -693,6 +969,7 @@ function completeLogin(){
   document.getElementById('userAvatar').src=currentUser.photo;
   document.getElementById('settingsBtn').style.display=(currentUser.role==='Admin')?'flex':'none';
   if(!isDemoMode)initFirebaseListeners();
+  applyBranding();
   navigateTo('dashboard');
 }
 function handleLogout(){if(!confirm('Anda pasti mahu log keluar?'))return; if(isDemoMode){resetLog();return;} auth.signOut().then(resetLog);}
@@ -702,6 +979,8 @@ function resetLog(){currentUser=null; document.getElementById('mainApp').classLi
 function initFirebaseListeners(){
   db.collection("products").onSnapshot((s)=>{products=[];s.forEach(d=>products.push({id:d.id,...d.data()}));if(products.length===0)defaultData.forEach(p=>db.collection("products").add(p));renderAllViews();});
   db.collection("orders").orderBy("created_at","desc").onSnapshot((s)=>{allOrders=[];s.forEach(d=>allOrders.push({id:d.id,...d.data()}));renderAllViews();});
+  db.collection("users").onSnapshot((s)=>{users=[];s.forEach(d=>users.push({id:d.id,...d.data()}));renderAllViews();});
+  db.collection("settings").doc("branding").onSnapshot((d)=>{if(d.exists){branding={...DEFAULT_BRANDING,...d.data()};applyBranding();}});
 }
 function renderAllViews(){
   updateDashboardStats(); updateStockAlerts();
@@ -711,7 +990,7 @@ function renderAllViews(){
   if(currentPage==='history')renderHistory();
   if(currentPage==='customers')renderCustomers();
   if(currentPage==='delivery')renderDelivery();
-  if(currentPage==='settings')renderSettingsTable();
+  if(currentPage==='settings'){renderSettingsTable();renderAdminsTable();loadBrandingForm();}
   saveToLocalStorage(); lucide.createIcons();
 }
 
@@ -719,8 +998,7 @@ function renderAllViews(){
 function navigateTo(page){
   currentPage=page;
   document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
-  const pg=document.getElementById('page-'+page);
-  if(pg)pg.classList.remove('hidden');
+  const pg=document.getElementById('page-'+page); if(pg)pg.classList.remove('hidden');
   document.querySelectorAll('.sidebar-item').forEach(b=>b.classList.remove('active','bg-white/10','border-l-4','border-gold-400'));
   const btn=document.querySelector(`.sidebar-item[data-page="${page}"]`);
   if(btn)btn.classList.add('active','bg-white/10','border-l-4','border-gold-400');
@@ -731,6 +1009,105 @@ function navigateTo(page){
   document.getElementById('sidebar').classList.remove('translate-x-0');
 }
 function toggleSidebar(){const s=document.getElementById('sidebar');s.classList.toggle('-translate-x-full');s.classList.toggle('translate-x-0');}
+
+// =========== SETTINGS TABS ===========
+function switchSettingsTab(tab){
+  document.querySelectorAll('.settings-tab').forEach(t=>t.classList.add('hidden'));
+  const t=document.getElementById('settings-tab-'+tab); if(t)t.classList.remove('hidden');
+  document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.remove('active');b.classList.add('text-gray-600');});
+  const ab=document.querySelector(`.tab-btn[data-tab="${tab}"]`); if(ab){ab.classList.add('active');ab.classList.remove('text-gray-600');}
+  if(tab==='branding')loadBrandingForm();
+  if(tab==='admins')renderAdminsTable();
+  lucide.createIcons();
+}
+
+// =========== USER ACCESS MANAGEMENT (Pilihan A: role list sahaja) ===========
+function renderAdminsTable(){
+  const c=document.getElementById('adminsListTable'); if(!c)return;
+  if(users.length===0){c.innerHTML='<tr><td colspan="4" class="text-center py-8 text-gray-400">Belum ada pengguna diberi akses</td></tr>';return;}
+  c.innerHTML=users.map(u=>{
+    const isMe=currentUser&&((isDemoMode&&u.email===currentUser.email)||(!isDemoMode&&(u.id===currentUser.uid||u.email===currentUser.email)));
+    return `<tr class="hover:bg-gray-50 transition border-b border-gray-50">
+      <td class="p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-farm-100 flex items-center justify-center text-farm-700 font-bold">${escapeHtml((u.name||'?').charAt(0).toUpperCase())}</div>
+        <div><p class="font-bold text-sm text-gray-800">${escapeHtml(u.name||'-')} ${isMe?'<span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded ml-1">Anda</span>':''}</p>
+        <p class="text-xs text-gray-500">${escapeHtml(u.email||'-')}</p></div>
+      </td>
+      <td class="p-4"><span class="px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold ${u.role==='Admin'?'bg-amber-100 text-amber-700':'bg-blue-100 text-blue-700'}">${u.role||'Staff'}</span></td>
+      <td class="p-4"><p class="text-xs text-gray-500">${u.created_at?new Date(u.created_at).toLocaleDateString('ms-MY'):'-'}</p></td>
+      <td class="p-4 text-right">
+        <button type="button" onclick="editUser('${u.id}')" class="w-8 h-8 inline-flex items-center justify-center bg-blue-50 text-blue-600 rounded hover:bg-blue-100"><i data-lucide="edit" class="w-4 h-4"></i></button>
+        ${!isMe?`<button type="button" onclick="deleteUser('${u.id}')" class="w-8 h-8 inline-flex items-center justify-center bg-red-50 text-red-600 rounded hover:bg-red-100 ml-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`:''}
+      </td></tr>`;
+  }).join('');
+  lucide.createIcons();
+}
+function showAddUserModal(){
+  document.getElementById('userForm').reset();
+  document.getElementById('editUserId').value='';
+  document.getElementById('userModalTitle').textContent='Beri Akses Pengguna';
+  document.getElementById('userEmail').readOnly=false;
+  document.getElementById('userModal').classList.remove('hidden');
+  lucide.createIcons();
+}
+function editUser(id){
+  const u=users.find(x=>x.id===id); if(!u)return;
+  document.getElementById('editUserId').value=u.id;
+  document.getElementById('userName').value=u.name||'';
+  document.getElementById('userEmail').value=u.email||'';
+  document.getElementById('userEmail').readOnly=true;
+  document.getElementById('userRole').value=u.role||'Staff';
+  document.getElementById('userModalTitle').textContent='Edit Akses Pengguna';
+  document.getElementById('userModal').classList.remove('hidden');
+}
+function closeUserModal(){
+  document.getElementById('userModal').classList.add('hidden');
+  document.getElementById('userEmail').readOnly=false;
+}
+async function saveUser(e){
+  e.preventDefault();
+  const id=document.getElementById('editUserId').value;
+  const name=document.getElementById('userName').value.trim();
+  const email=document.getElementById('userEmail').value.trim().toLowerCase();
+  const role=document.getElementById('userRole').value;
+  const btn=document.getElementById('saveUserBtn'); const orig=btn.innerHTML;
+  btn.disabled=true; btn.innerHTML='<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Memproses...'; lucide.createIcons();
+  try{
+    if(isDemoMode){
+      if(id){
+        const idx=users.findIndex(x=>x.id===id);
+        if(idx>=0){users[idx].name=name; users[idx].role=role;}
+      }else{
+        if(users.some(x=>(x.email||'').toLowerCase()===email)){showToast('E-mel ini sudah ada dalam senarai','error');btn.disabled=false;btn.innerHTML=orig;lucide.createIcons();return;}
+        users.push({id:'u'+Date.now(),name,email,password:'(via Firebase)',role,created_at:new Date().toISOString()});
+      }
+      saveToLocalStorage(); renderAdminsTable(); closeUserModal(); showToast('Disimpan','success');
+    }else{
+      // Firebase Mode
+      if(id){
+        await db.collection("users").doc(id).update({name,role});
+        showToast('Maklumat dikemaskini','success'); closeUserModal();
+      }else{
+        // Cek duplicate email
+        const dup=users.find(x=>(x.email||'').toLowerCase()===email);
+        if(dup){showToast('E-mel ini sudah ada dalam senarai','error');btn.disabled=false;btn.innerHTML=orig;lucide.createIcons();return;}
+        // Guna email sebagai docId sementara - akan auto-migrate ke uid bila user login pertama kali
+        const docId='pending_'+email.replace(/[^a-z0-9]/g,'_')+'_'+Date.now();
+        await db.collection("users").doc(docId).set({name,email,role,created_at:new Date().toISOString(),pending:true});
+        showToast('Akses diberi. User akan aktif selepas mereka login.','success'); closeUserModal();
+      }
+    }
+  }catch(err){showToast('Ralat: '+err.message,'error');}
+  finally{btn.disabled=false;btn.innerHTML=orig;lucide.createIcons();}
+}
+async function deleteUser(id){
+  const u=users.find(x=>x.id===id); if(!u)return;
+  if(!confirm(`Tarik balik akses untuk "${u.name}" (${u.email})?\n\nNOTA: Akaun Firebase Auth mereka tidak dipadam — anda boleh hapus secara manual di Firebase Console jika perlu.`))return;
+  try{
+    if(isDemoMode){users=users.filter(x=>x.id!==id);saveToLocalStorage();renderAdminsTable();showToast('Akses ditarik','success');}
+    else{await db.collection("users").doc(id).delete(); showToast('Akses ditarik. Akaun Firebase Auth tidak terjejas.','success');}
+  }catch(err){showToast('Ralat: '+err.message,'error');}
+}
 
 // =========== GLOBAL SEARCH ===========
 function globalSearchHandler(e){
@@ -787,7 +1164,7 @@ function downloadReport(){
 
 // =========== BACKUP ===========
 function exportBackup(){
-  const data={version:'2.1',exported_at:new Date().toISOString(),products,orders:allOrders};
+  const data={version:'3.0',exported_at:new Date().toISOString(),products,orders:allOrders,users,branding};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const link=document.createElement("a"); link.href=URL.createObjectURL(blob);
   link.download=`HMF_Backup_${new Date().toISOString().split('T')[0]}.json`; link.click();
@@ -799,7 +1176,12 @@ function importBackup(e){
   const r=new FileReader();
   r.onload=(ev)=>{
     try{const d=JSON.parse(ev.target.result); if(!d.products||!d.orders)throw new Error('Format tidak sah');
-      if(isDemoMode){products=d.products; allOrders=d.orders; renderAllViews(); showToast('Data dipulihkan!','success');}
+      if(isDemoMode){
+        products=d.products; allOrders=d.orders;
+        if(d.users)users=d.users;
+        if(d.branding)branding={...DEFAULT_BRANDING,...d.branding};
+        applyBranding(); renderAllViews(); showToast('Data dipulihkan!','success');
+      }
       else showToast('Untuk Firebase: gunakan Firebase Console','error');
     }catch(err){showToast('Ralat: '+err.message,'error');}
   };
@@ -865,23 +1247,17 @@ function goToCheckout(){
   document.getElementById('checkoutTotal').textContent='RM '+t.toLocaleString(undefined,{minimumFractionDigits:2});
   updateBalance(); navigateTo('checkout');
 }
-
-// FIX: Search pelanggan - hanya isi field, TIDAK submit
 function searchExistingCustomer(e){
   const q=e.target.value.toLowerCase().trim(); const results=document.getElementById('customerSearchResults');
   if(q.length<2){results.classList.add('hidden');return;}
   const map={}; allOrders.forEach(o=>{const k=(o.buyer_name||'')+'|'+(o.buyer_phone||'');if(!map[k])map[k]={name:o.buyer_name||'',phone:o.buyer_phone||'',address:o.buyer_address||'',count:0};map[k].count++;});
   const found=Object.values(map).filter(c=>c.name.toLowerCase().includes(q)||(c.phone||'').includes(q)).slice(0,5);
   if(found.length===0){results.classList.add('hidden');return;}
-  // PENTING: Pakai data-* attribute + addEventListener untuk elak issue dengan apostrof & auto-submit
   results.innerHTML=found.map((c,idx)=>`<button type="button" data-cust-idx="${idx}" class="cust-pick-btn w-full text-left p-3 hover:bg-blue-50 border-b border-gray-100 transition"><p class="font-bold text-sm text-gray-800">${escapeHtml(c.name)}</p><p class="text-xs text-gray-500">${escapeHtml(c.phone||'')} • ${c.count} kali beli</p></button>`).join('');
-  // Simpan data secara local untuk akses kemudian
   results._foundCustomers=found;
-  // Attach event listeners (bukan onclick inline) supaya tiada masalah escape
   results.querySelectorAll('.cust-pick-btn').forEach(btn=>{
     btn.addEventListener('click',function(ev){
-      ev.preventDefault();
-      ev.stopPropagation();
+      ev.preventDefault(); ev.stopPropagation();
       const idx=parseInt(this.getAttribute('data-cust-idx'));
       const c=results._foundCustomers[idx];
       if(c)selectCustomer(c.name,c.phone,c.address);
@@ -889,8 +1265,6 @@ function searchExistingCustomer(e){
   });
   results.classList.remove('hidden');
 }
-
-// FIX: selectCustomer hanya isi field. TIADA submit, TIADA navigate.
 function selectCustomer(name,phone,addr){
   document.getElementById('buyerName').value=name||'';
   document.getElementById('buyerPhone').value=phone||'';
@@ -899,7 +1273,6 @@ function selectCustomer(name,phone,addr){
   document.getElementById('customerSearchResults').classList.add('hidden');
   showToast('Maklumat pelanggan dimuatkan. Sila semak & klik "Sahkan Tempahan"','success');
 }
-
 function toggleDeposit(){
   const isDep=document.getElementById('paymentType').value==='deposit';
   document.getElementById('depositSection').classList.toggle('hidden',!isDep);
@@ -914,10 +1287,7 @@ function updateBalance(){
 }
 async function processCheckout(e){
   e.preventDefault();
-  // Tutup mana-mana dropdown search yang masih buka
-  const csr=document.getElementById('customerSearchResults');
-  if(csr)csr.classList.add('hidden');
-
+  const csr=document.getElementById('customerSearchResults'); if(csr)csr.classList.add('hidden');
   const btn=document.getElementById('processBtn');
   btn.disabled=true; btn.innerHTML='<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Memproses...'; lucide.createIcons();
   const sub=cart.reduce((s,x)=>{const p=products.find(i=>i.id===x.id);return s+(p?p.price*x.qty:0);},0);
@@ -999,7 +1369,7 @@ function showInvoice(order,items){
 // =========== SHARE & PDF ===========
 function generateInvoiceText(){
   if(!lastInvoiceData)return ''; const o=lastInvoiceData.order; const items=lastInvoiceData.items;
-  let t='═══════════════════════\n   HIKMAH MACHANG FARM\n   Premium Islamic Livestock\n═══════════════════════\n\n';
+  let t='═══════════════════════\n   '+(branding.fullName||'HIKMAH MACHANG FARM').toUpperCase()+'\n   '+(branding.tagline||'')+'\n═══════════════════════\n\n';
   t+=`📄 No Resit: ${o.invoice_number}\n📅 Tarikh: ${new Date(o.created_at).toLocaleDateString('ms-MY')}\n\n`;
   t+=`👤 PELANGGAN:\n${o.buyer_name}\n📞 ${o.buyer_phone}\n📍 ${o.buyer_address}\n`;
   if(o.delivery_date)t+=`🚚 Delivery: ${o.delivery_date}\n`;
@@ -1026,8 +1396,6 @@ function downloadInvoiceText(){
   link.href=URL.createObjectURL(blob); link.download=`Resit_${lastInvoiceData.order.invoice_number}.txt`; link.click();
   showToast('Resit dimuat turun','success');
 }
-
-// FUNGSI BARU: Download PDF
 function downloadInvoicePDF(){
   if(!lastInvoiceData){showToast('Tiada resit untuk dimuat turun','error');return;}
   if(typeof html2pdf==='undefined'){showToast('Library PDF belum dimuat. Cuba lagi sebentar.','error');return;}
@@ -1042,11 +1410,7 @@ function downloadInvoicePDF(){
     jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
     pagebreak:{mode:['avoid-all','css','legacy']}
   };
-  html2pdf().set(opt).from(el).save().then(()=>{
-    showToast('PDF berjaya disimpan!','success');
-  }).catch(err=>{
-    showToast('Ralat PDF: '+(err.message||'tidak diketahui'),'error');
-  });
+  html2pdf().set(opt).from(el).save().then(()=>{showToast('PDF berjaya disimpan!','success');}).catch(err=>{showToast('Ralat PDF: '+(err.message||'tidak diketahui'),'error');});
 }
 
 // =========== STATS ===========
@@ -1059,22 +1423,19 @@ function updateDashboardStats(){
   const pen=allOrders.filter(o=>o.status==='deposit'); const pa=pen.reduce((s,o)=>s+(o.balance||0),0);
   const all=new Set(allOrders.map(o=>o.buyer_name)); const newC=new Set();
   allOrders.forEach(o=>{const d=new Date(o.created_at);if(d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()){const e=allOrders.find(x=>x.buyer_name===o.buyer_name&&new Date(x.created_at)<d);if(!e)newC.add(o.buyer_name);}});
-  document.getElementById('statTodaySales').textContent='RM '+ts.toLocaleString();
-  document.getElementById('statTodayCount').textContent=td.length;
-  document.getElementById('statMonthSales').textContent='RM '+ms.toLocaleString();
-  document.getElementById('statTotalTx').textContent=allOrders.length;
-  document.getElementById('statPending').textContent=pen.length;
-  document.getElementById('statPendingAmount').textContent='RM '+pa.toLocaleString();
-  document.getElementById('statCustomers').textContent=all.size;
-  document.getElementById('statCustomersNew').textContent=newC.size;
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('statTodaySales','RM '+ts.toLocaleString()); set('statTodayCount',td.length);
+  set('statMonthSales','RM '+ms.toLocaleString()); set('statTotalTx',allOrders.length);
+  set('statPending',pen.length); set('statPendingAmount','RM '+pa.toLocaleString());
+  set('statCustomers',all.size); set('statCustomersNew',newC.size);
 }
 function renderRecentTransactions(){
-  const c=document.getElementById('recentTransactions'); const arr=allOrders.slice(0,5);
+  const c=document.getElementById('recentTransactions'); if(!c)return; const arr=allOrders.slice(0,5);
   if(arr.length===0){c.innerHTML='<p class="text-gray-400 text-sm text-center py-6">Tiada rekod</p>';return;}
   c.innerHTML=arr.map(o=>`<div class="flex justify-between items-center p-3 hover:bg-gray-50 rounded-xl transition cursor-pointer" onclick="viewOldInvoice('${o.id}')"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><i data-lucide="file-text" class="w-4 h-4"></i></div><div><p class="font-bold text-sm text-gray-800">${escapeHtml(o.buyer_name)}</p><p class="text-xs text-gray-400">${escapeHtml(o.invoice_number)} • ${new Date(o.created_at).toLocaleDateString('ms-MY')}</p></div></div><div class="text-right"><p class="font-bold text-sm text-farm-700">RM ${o.total_amount.toLocaleString()}</p><span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${o.status==='paid'?'bg-green-100 text-green-700':'bg-amber-100 text-amber-700'}">${o.status}</span></div></div>`).join('');
 }
 function renderStockOverview(){
-  const c=document.getElementById('stockOverview');
+  const c=document.getElementById('stockOverview'); if(!c)return;
   c.innerHTML=products.filter(p=>p.active).map(p=>{const isLow=p.stock<=(p.minStock||5);
     return `<div class="flex justify-between items-center p-3 border-b border-gray-50 ${isLow?'bg-red-50/50':''}"><div class="flex items-center gap-3"><span class="text-2xl">${p.emoji||'🐄'}</span><div><span class="font-semibold text-sm text-gray-700">${escapeHtml(p.name)}</span><p class="text-[10px] text-gray-400">RM ${p.price.toLocaleString()}</p></div></div><span class="px-3 py-1 rounded-full text-xs font-bold ${p.stock<=(p.minStock||5)?'bg-red-100 text-red-700':'bg-green-100 text-green-700'}">${p.stock} Unit</span></div>`;
   }).join('');
@@ -1084,7 +1445,7 @@ function renderTopProducts(){
   const md=allOrders.filter(o=>{const d=new Date(o.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
   const counts={}; md.forEach(o=>{(o.items||[]).forEach(i=>{if(!counts[i.id])counts[i.id]={name:i.name,qty:0,total:0};counts[i.id].qty+=i.qty;counts[i.id].total+=i.subtotal;});});
   const top=Object.values(counts).sort((a,b)=>b.qty-a.qty).slice(0,5);
-  const c=document.getElementById('topProducts');
+  const c=document.getElementById('topProducts'); if(!c)return;
   if(top.length===0){c.innerHTML='<p class="text-gray-400 text-sm text-center py-4">Tiada jualan bulan ini</p>';return;}
   const max=top[0].qty;
   c.innerHTML=top.map((t,i)=>`<div><div class="flex justify-between text-sm mb-1"><span class="font-semibold text-gray-700">${i+1}. ${escapeHtml(t.name)}</span><span class="text-farm-700 font-bold">${t.qty} unit</span></div><div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-farm-500 h-2 rounded-full" style="width:${(t.qty/max)*100}%"></div></div><p class="text-[10px] text-gray-400 mt-1">RM ${t.total.toLocaleString()}</p></div>`).join('');
@@ -1101,8 +1462,8 @@ function renderSalesChart(){
 function renderProductsGrid(){
   const s=(document.getElementById('productCatalogSearch')?.value||'').toLowerCase();
   const filtered=products.filter(p=>p.name.toLowerCase().includes(s));
-  const c=document.getElementById('productsList');
-  document.getElementById('productCount').textContent=`${filtered.length} produk`;
+  const c=document.getElementById('productsList'); if(!c)return;
+  const cnt=document.getElementById('productCount'); if(cnt)cnt.textContent=`${filtered.length} produk`;
   if(filtered.length===0){c.innerHTML='<p class="col-span-full text-center py-8 text-gray-400">Tiada produk</p>';return;}
   c.innerHTML=filtered.map(p=>`<div class="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center gap-4 ${!p.active?'opacity-50 grayscale':''}"><div class="w-16 h-16 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-3xl shadow-sm">${p.emoji||'🐄'}</div><div class="flex-1"><h4 class="font-bold text-gray-900">${escapeHtml(p.name)}</h4><p class="text-xs text-gray-400 mb-1">${escapeHtml(p.desc||'')}</p><p class="text-sm font-bold text-farm-600">RM ${p.price.toLocaleString()}</p><p class="text-xs text-gray-500 mt-1">Sedia Ada: <span class="font-bold text-gray-800">${p.stock}</span></p></div></div>`).join('');
 }
@@ -1116,10 +1477,11 @@ function renderHistory(){
   if(s)arr=arr.filter(o=>(o.buyer_name||'').toLowerCase().includes(s)||(o.invoice_number||'').toLowerCase().includes(s)||(o.buyer_phone||'').includes(s));
   if(f!=='all')arr=arr.filter(o=>o.status===f);
   if(df!=='all'){const now=new Date();arr=arr.filter(o=>{const d=new Date(o.created_at);if(df==='today')return d.toDateString()===now.toDateString();if(df==='week')return (now-d)/(1000*60*60*24)<=7;if(df==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();return true;});}
-  document.getElementById('historyCount').textContent=arr.length;
-  document.getElementById('historyTotal').textContent='RM '+arr.reduce((s,o)=>s+(o.total_amount||0),0).toLocaleString();
-  document.getElementById('historyBalance').textContent='RM '+arr.reduce((s,o)=>s+(o.balance||0),0).toLocaleString();
-  const c=document.getElementById('historyListTable');
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('historyCount',arr.length);
+  set('historyTotal','RM '+arr.reduce((s,o)=>s+(o.total_amount||0),0).toLocaleString());
+  set('historyBalance','RM '+arr.reduce((s,o)=>s+(o.balance||0),0).toLocaleString());
+  const c=document.getElementById('historyListTable'); if(!c)return;
   if(arr.length===0){c.innerHTML='<tr><td colspan="5" class="text-center py-8 text-gray-400">Tiada rekod</td></tr>';return;}
   c.innerHTML=arr.map(o=>`<tr class="hover:bg-gray-50 transition border-b border-gray-50">
     <td class="p-4"><p class="font-bold text-sm text-gray-800">${escapeHtml(o.invoice_number)}</p><p class="text-xs text-gray-500">${new Date(o.created_at).toLocaleDateString('ms-MY')}</p></td>
@@ -1171,11 +1533,10 @@ function renderCustomers(){
   let arr=Object.values(map);
   if(search)arr=arr.filter(c=>c.n.toLowerCase().includes(search)||(c.p||'').includes(search));
   arr.sort((a,b)=>b.t-a.t);
-  document.getElementById('customerCount').textContent=`${arr.length} pelanggan`;
-  const c=document.getElementById('customersList');
+  const cnt=document.getElementById('customerCount'); if(cnt)cnt.textContent=`${arr.length} pelanggan`;
+  const c=document.getElementById('customersList'); if(!c)return;
   if(arr.length===0){c.innerHTML='<p class="col-span-3 text-center py-8 text-gray-400">Belum ada pelanggan</p>';return;}
   c.innerHTML=arr.map((x,idx)=>`<div class="bg-gray-50 rounded-xl p-5 border border-gray-100 flex flex-col items-center text-center"><div class="w-12 h-12 bg-farm-100 rounded-full flex items-center justify-center text-farm-700 font-bold text-lg mb-3">${escapeHtml((x.n||'?').charAt(0).toUpperCase())}</div><h4 class="font-bold text-gray-900">${escapeHtml(x.n)}</h4><p class="text-xs text-gray-500 mb-1">${escapeHtml(x.p||'-')}</p><p class="text-[10px] text-gray-400 mb-3">Last: ${new Date(x.lastDate).toLocaleDateString('ms-MY')}</p><div class="w-full bg-white rounded-lg p-3 flex justify-between text-xs mb-3 border border-gray-100"><div><span class="block text-gray-400">Beli</span><span class="font-bold text-gray-800">${x.c} kali</span></div><div class="text-right"><span class="block text-gray-400">Belanja</span><span class="font-bold text-farm-600">RM ${x.t.toLocaleString()}</span></div></div><div class="flex gap-2 w-full"><button type="button" data-cust-phone="${escapeHtml(x.p||'')}" class="cust-call-btn flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100 transition flex items-center justify-center gap-1"><i data-lucide="phone" class="w-3 h-3"></i> Call</button>${currentUser&&currentUser.role==='Admin'?`<button type="button" data-cust-name="${escapeHtml(x.n)}" class="cust-del-btn flex-1 py-2 bg-red-50 text-red-600 rounded-lg text-xs font-bold hover:bg-red-100 transition flex items-center justify-center gap-1"><i data-lucide="trash-2" class="w-3 h-3"></i> Padam</button>`:''}</div></div>`).join('');
-  // Attach handlers
   document.querySelectorAll('.cust-call-btn').forEach(b=>b.addEventListener('click',function(){callCustomer(this.getAttribute('data-cust-phone'));}));
   document.querySelectorAll('.cust-del-btn').forEach(b=>b.addEventListener('click',function(){deleteCustomer(this.getAttribute('data-cust-name'));}));
   lucide.createIcons();
@@ -1195,8 +1556,8 @@ function renderDelivery(){
   const now=new Date(); now.setHours(0,0,0,0);
   arr=arr.filter(o=>{const d=new Date(o.delivery_date);d.setHours(0,0,0,0);if(f==='today')return d.getTime()===now.getTime();if(f==='upcoming')return d.getTime()>=now.getTime();if(f==='past')return d.getTime()<now.getTime();return true;});
   arr.sort((a,b)=>new Date(a.delivery_date)-new Date(b.delivery_date));
-  document.getElementById('deliveryCount').textContent=`${arr.length} pesanan`;
-  const c=document.getElementById('deliveryList');
+  const cnt=document.getElementById('deliveryCount'); if(cnt)cnt.textContent=`${arr.length} pesanan`;
+  const c=document.getElementById('deliveryList'); if(!c)return;
   if(arr.length===0){c.innerHTML='<p class="text-center py-8 text-gray-400">Tiada penghantaran</p>';return;}
   c.innerHTML=arr.map(o=>{const d=new Date(o.delivery_date);d.setHours(0,0,0,0);const isToday=d.getTime()===now.getTime();const isPast=d.getTime()<now.getTime();const status=o.delivery_status||'pending';const sc={pending:'bg-amber-100 text-amber-700',onway:'bg-blue-100 text-blue-700',delivered:'bg-green-100 text-green-700'};const st={pending:'Menunggu',onway:'Dalam Hantaran',delivered:'Telah Dihantar'};
     return `<div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border ${isToday?'border-amber-300 bg-amber-50':isPast?'border-red-200':'border-gray-100'}"><div class="flex items-center gap-4 flex-1 min-w-0"><div class="w-14 h-14 ${isToday?'bg-amber-500 text-white':'bg-blue-50 text-blue-600'} rounded-xl flex items-center justify-center flex-col flex-shrink-0"><span class="text-[10px] font-bold uppercase">${new Date(o.delivery_date).toLocaleString('ms-MY',{month:'short'})}</span><span class="text-lg font-black leading-none">${new Date(o.delivery_date).getDate()}</span></div><div class="flex-1 min-w-0"><div class="flex items-center gap-2 flex-wrap"><h4 class="font-bold text-gray-900 text-sm">${escapeHtml(o.buyer_name)}</h4>${isToday?'<span class="text-[9px] bg-amber-500 text-white px-2 py-0.5 rounded font-bold uppercase">Hari Ini</span>':''}<span class="text-[9px] uppercase font-bold px-2 py-0.5 rounded ${sc[status]}">${st[status]}</span></div><p class="text-xs text-gray-500 truncate">${escapeHtml(o.buyer_address)}</p><p class="text-xs text-gray-400 mt-1">📞 ${escapeHtml(o.buyer_phone||'')} • Inv: ${escapeHtml(o.invoice_number)}</p></div></div><div class="flex flex-col gap-1 items-end ml-2"><select onchange="updateDeliveryStatus('${o.id}',this.value)" class="text-xs border border-gray-200 rounded-lg p-1.5 bg-white"><option value="pending" ${status==='pending'?'selected':''}>Menunggu</option><option value="onway" ${status==='onway'?'selected':''}>Dalam Hantar</option><option value="delivered" ${status==='delivered'?'selected':''}>Selesai</option></select><button type="button" onclick="viewOldInvoice('${o.id}')" class="text-xs font-bold text-farm-600 hover:underline">Detail</button></div></div>`;
@@ -1207,9 +1568,9 @@ async function updateDeliveryStatus(id,s){
   try{await db.collection("orders").doc(id).update({delivery_status:s});showToast('Status dikemaskini','success');}catch(err){showToast('Ralat: '+err.message,'error');}
 }
 
-// =========== SETTINGS ===========
+// =========== SETTINGS PRODUCTS ===========
 function renderSettingsTable(){
-  const c=document.getElementById('settingsProductsTable');
+  const c=document.getElementById('settingsProductsTable'); if(!c)return;
   c.innerHTML=products.map(p=>{const margin=p.cost&&p.price?((p.price-p.cost)/p.price*100).toFixed(1):null;
     return `<tr class="hover:bg-gray-50 transition border-b border-gray-50"><td class="p-4 flex items-center gap-3"><span class="text-3xl">${p.emoji||'🐄'}</span><div><p class="font-bold text-sm text-gray-800">${escapeHtml(p.name)}</p><p class="text-[10px] text-gray-400">${escapeHtml(p.desc||'')}</p>${margin?`<p class="text-[10px] text-green-600 font-bold">Margin: ${margin}%</p>`:''}</div></td><td class="p-4"><p class="font-bold text-gray-700">RM ${p.price.toLocaleString()}</p>${p.cost?`<p class="text-[10px] text-gray-400">Cost: RM ${p.cost.toLocaleString()}</p>`:''}</td><td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${p.stock<=(p.minStock||5)?'bg-red-100 text-red-700':'bg-gray-100'}">${p.stock}</span><p class="text-[10px] text-gray-400 mt-1">Min: ${p.minStock||5}</p></td><td class="p-4"><button type="button" onclick="toggleActive('${p.id}',${!p.active})" class="px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold ${p.active?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}">${p.active?'Aktif':'Tersembunyi'}</button></td><td class="p-4 text-right space-x-1"><button type="button" onclick="editProduct('${p.id}')" class="w-8 h-8 inline-flex items-center justify-center bg-blue-50 text-blue-600 rounded hover:bg-blue-100"><i data-lucide="edit" class="w-4 h-4"></i></button><button type="button" onclick="deleteProduct('${p.id}')" class="w-8 h-8 inline-flex items-center justify-center bg-red-50 text-red-600 rounded hover:bg-red-100"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
   }).join(''); lucide.createIcons();
@@ -1257,6 +1618,7 @@ function showToast(msg,type='success'){
 }
 document.getElementById('currentDate').textContent=new Date().toLocaleDateString('ms-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 lucide.createIcons();
+applyBranding();
 setInterval(()=>{if(isDemoMode)saveToLocalStorage();},30000);
 </script>
 </body>
